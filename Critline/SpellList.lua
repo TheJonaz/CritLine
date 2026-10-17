@@ -36,7 +36,11 @@ end
 local function onEnter(self)
 	GameTooltip.Critline = true
 	GameTooltip:SetOwner(self, "ANCHOR_LEFT")
-	GameTooltip:SetSpellByID(self.data.id)
+	if addon:IsSchoolID(self.data.id) then
+		GameTooltip:AddLine(self.data.name, HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b)
+	else
+		GameTooltip:SetSpellByID(self.data.id)
+	end
 	GameTooltip:AddLine(" ")
 	addon:AddTooltipLine(self.data)
 	if addon.GetPreviousRecord then

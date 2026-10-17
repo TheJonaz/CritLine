@@ -1,5 +1,12 @@
 # Critline
 
+## v4.7.1-forever2 (unofficial WoW: Forever port)
+
+- Record hits again without the combat log: read `UNIT_COMBAT` on your target (and heals on yourself), and keep records per damage school (Physical, Fire, ...).
+- A hit only counts while you are attacking (auto attack, auto repeat or a cast in the last 3 seconds) and the mob isn't tagged by someone else.
+- New options: **Only record while solo** and **Ignore reactive damage** (both on by default).
+- Mob, level and outdoor boss filters apply to these records; aura filters don't.
+
 ## v4.7.1-forever1 (unofficial WoW: Forever port)
 
 Ported by The_Yonaz with the written permission of the copyright holder, Lombra. See [PORTING.md](PORTING.md).

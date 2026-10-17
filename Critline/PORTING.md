@@ -41,9 +41,24 @@ heal from that event.
 - **Combat log guard (`Core.lua`, `FilterCore.lua`, `Critline_AuraMonitor`).** `Critline:IsCombatLogAvailable()`
   checks whether the client exposes the combat log. The secret value API (`issecretvalue`) existing
   is taken as the sign that it does not. If the combat log is blocked, Critline does not register
-  `COMBAT_LOG_EVENT_UNFILTERED` (or the filter module's `UNIT_AURA`) and prints a notice at login.
-  The addon then loads cleanly, and existing records, tooltips, the display, the spell list and the
-  options all work, but **no new records are registered**.
+  `COMBAT_LOG_EVENT_UNFILTERED` (or the filter module's `UNIT_AURA`). It switches to `UNIT_COMBAT`
+  tracking instead and prints a notice at login.
+- **`UNIT_COMBAT` tracking (`UnitCombat.lua`, since forever2).** Reads damage and heals on your target,
+  and heals on yourself, from `UNIT_COMBAT`. That event gives the amount, the school and whether it
+  was a crit, but not the spell or the attacker. So:
+  - Records are kept **per damage school** (Physical, Fire, mixed schools such as Shadowflame, ...).
+    They are stored under the negated school mask as the spell ID, with the school's name and a
+    standard icon.
+  - Damage only counts while you are attacking: auto attack or auto repeat (Auto Shot, Shoot) is on,
+    or you cast something in the last 3 seconds. It also has to be a mob that isn't tagged by
+    someone outside your group. Heals need a cast of your own in the last 3 seconds.
+  - **Only record while solo** (on by default) ignores everything while you are in a group, because
+    group members' hits can't be told apart from yours.
+  - **Ignore reactive damage** (on by default) skips non-physical, non-crit damage that lands within
+    0.2 seconds of you taking a hit (Thorns, damage shields).
+  - Any value that the client marks secret (for example during boss encounters) is skipped.
+  - Mob, level and outdoor boss filters still apply. Aura filters and DoT/direct separation don't.
+  - The attribution rules are the same as in Titan Panel [CritLine Forever] by The_Yonaz.
 - **`/cl combatlog`** turns on forced combat log registration (applied after `/reload`). Use it to
   test if Blizzard relaxes the restriction, for example outside encounters. Type it again to turn it
   off.
@@ -55,10 +70,11 @@ heal from that event.
 
 ## Known limitations
 
-- Under the current Forever rules, **Critline cannot record new records.** No addon-readable
-  replacement gives per-hit amounts with spell ID and crit flag. `C_DamageMeter` only gives totals
-  per spell, and they are secret in combat. `UNIT_COMBAT` gives amount and crit, but not the spell
-  or the attacker.
+- Without the combat log, Critline cannot tell **which spell** hit. `C_DamageMeter` only gives
+  totals per spell, and they are secret in combat. `UNIT_COMBAT` gives amount and crit, but not the
+  spell or the attacker. Records are therefore per school.
+- Pet hits on your target count as yours (in the damage tree) while you are attacking. The pet tree
+  is not filled. DoT ticks and hits from others' AoE can be counted while you are attacking.
 - Not tested in game at the time of writing. `UIDropDownMenu` (used by Libra and the spell list)
   has been deprecated in modern clients and may need replacing if it is removed.
 - This is Lombra's standalone Critline, **not** Titan Panel [CritLine Forever]. Critline has no
@@ -71,7 +87,9 @@ heal from that event.
 
 1. Install `Critline` and `Critline_AuraMonitor` in `_classic_beta_\Interface\AddOns`.
 2. Log in. You should see no Lua errors and no "blocked action" popup. You should see the
-   "Combat log access is blocked…" notice.
-3. `/cl` opens the options. Check that the display frame, minimap button, spell list and profiles work.
-4. `/cl aura` opens the AuraMonitor. Enter and leave combat and check that no errors appear.
-5. Optionally, `/cl combatlog` and `/reload`: see whether the client blocks registration.
+   "The combat log is closed to addons…" notice.
+3. Leave your group if you're in one, attack a mob, and check that records such as "Physical" or
+   "Fire" show up in the spell list and the display. `/cl debug` prints why a hit was skipped.
+4. `/cl` opens the options. Check that the display frame, minimap button, spell list and profiles work.
+5. `/cl aura` opens the AuraMonitor. Enter and leave combat and check that no errors appear.
+6. Optionally, `/cl combatlog` and `/reload`: see whether the client blocks registration.

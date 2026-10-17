@@ -2,6 +2,11 @@
 if not L then return end
 
 -- common
+L["The combat log is closed to addons on this game client. Records are kept per damage school, read from your target's combat events."] = true
+L["Only record while solo"] = true
+L["Without the combat log, hits on your target can't be told apart from your group's. Disable to record in groups anyway."] = true
+L["Ignore reactive damage"] = true
+L["Without the combat log, ignore non-physical, non-critical damage that lands right after you were hit (Thorns, damage shields)."] = true
 L["Combat log access is blocked by this game client. Existing records are shown, but no new records can be registered."] = true
 L["damage"] = true
 L["Damage"] = true

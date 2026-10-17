@@ -342,6 +342,18 @@ do
 			key = "ignoreVulnerability",
 		},
 		{
+			type = "CheckButton",
+			text = L["Only record while solo"],
+			tooltip = L["Without the combat log, hits on your target can't be told apart from your group's. Disable to record in groups anyway."],
+			key = "unitCombatSoloOnly",
+		},
+		{
+			type = "CheckButton",
+			text = L["Ignore reactive damage"],
+			tooltip = L["Without the combat log, ignore non-physical, non-critical damage that lands right after you were hit (Thorns, damage shields)."],
+			key = "unitCombatIgnoreReactive",
+		},
+		{
 			newColumn = true,
 			type = "CheckButton",
 			text = L["Shorten records"],
@@ -433,6 +445,9 @@ local defaults = {
 		chatOutput = false,
 		screenshot = false,
 		sound = "None",
+		-- WoW: Forever port: UNIT_COMBAT tracking
+		unitCombatSoloOnly = true,
+		unitCombatIgnoreReactive = true,
 	},
 	global = {
 		spellMappings = {},
@@ -502,6 +517,9 @@ function Critline:OnInitialize()
 
 	if self:IsCombatLogAvailable() then
 		self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+	elseif self.unitCombat then
+		self.unitCombat:Enable()
+		self:Message(L["The combat log is closed to addons on this game client. Records are kept per damage school, read from your target's combat events."])
 	else
 		self:Message(L["Combat log access is blocked by this game client. Existing records are shown, but no new records can be registered."])
 	end
@@ -552,8 +570,8 @@ function Critline:FixSpells()
 				tree[spellID] = nil
 			end
 
-			-- remove spells that have been taken out of the game
-			if not GetSpellLink(spellID) then
+			-- remove spells that have been taken out of the game (school entries have no spell)
+			if not self:IsSchoolID(spellID) and not GetSpellLink(spellID) then
 				tree[spellID] = nil
 			end
 		end
@@ -704,11 +722,16 @@ function Critline:COMBAT_LOG_EVENT_UNFILTERED()
 		self:Debug(format("%d vulnerability damage ignored for a real value of %d.", abs(resisted), amount))
 	end
 
+	self:StoreRecord(tree, spellID, periodic, amount, critical, destName, targetLevel, isPvPTarget, isFiltered)
+end
+
+-- store a hit if it beats the current record; shared by the combat log and UNIT_COMBAT (WoW: Forever) handlers
+function Critline:StoreRecord(tree, spellID, periodic, amount, critical, destName, targetLevel, isPvPTarget, isFiltered)
 	local hitType = critical and "crit" or "normal"
 	local data = self:GetSpellInfo(tree, spellID, periodic)
 	local arrayData
 
-	spellName = self:GetSpellName(spellID)
+	local spellName = self:GetSpellName(spellID)
 
 	-- create spell database entries as required
 	if not data then
@@ -918,13 +941,55 @@ function Critline:GetSpellInfo(tree, spellID, periodic)
 	return spell and spell[periodic]
 end
 
+-- WoW: Forever port: records read from UNIT_COMBAT are stored per damage school, under the negated school mask
+local SCHOOL_ICONS = {
+	[1]  = [[Interface\Icons\INV_Sword_04]],
+	[2]  = [[Interface\Icons\Spell_Holy_HolyBolt]],
+	[4]  = [[Interface\Icons\Spell_Fire_FlameBolt]],
+	[8]  = [[Interface\Icons\Spell_Nature_Lightning]],
+	[16] = [[Interface\Icons\Spell_Frost_FrostBolt02]],
+	[32] = [[Interface\Icons\Spell_Shadow_ShadowBolt]],
+	[64] = [[Interface\Icons\Spell_Nature_StarFall]],
+}
+
+local SCHOOL_NAMES = {
+	[1]  = STRING_SCHOOL_PHYSICAL,
+	[2]  = STRING_SCHOOL_HOLY,
+	[4]  = STRING_SCHOOL_FIRE,
+	[8]  = STRING_SCHOOL_NATURE,
+	[16] = STRING_SCHOOL_FROST,
+	[32] = STRING_SCHOOL_SHADOW,
+	[64] = STRING_SCHOOL_ARCANE,
+}
+
+function Critline:IsSchoolID(spellID)
+	return type(spellID) == "number" and spellID < 0
+end
+
+function Critline:GetSchoolName(schoolMask)
+	local GetSchoolString = C_Spell.GetSchoolString or GetSchoolString
+	if GetSchoolString then
+		local ok, name = pcall(GetSchoolString, schoolMask)
+		if ok and type(name) == "string" and name ~= "" then
+			return name
+		end
+	end
+	return SCHOOL_NAMES[schoolMask] or format("%s (%d)", UNKNOWN, schoolMask)
+end
+
 function Critline:GetSpellName(spellID, raw)
+	if self:IsSchoolID(spellID) then
+		return (not raw and spellNameOverrides[spellID]) or self:GetSchoolName(-spellID)
+	end
 	local spellName = spellNameCache[spellID] or GetSpellName(spellID)
 	spellNameCache[spellID] = spellName
 	return (not raw and spellNameOverrides[spellID]) or spellName
 end
 
 function Critline:GetSpellTexture(spellID)
+	if self:IsSchoolID(spellID) then
+		return spellIconOverrides[spellID] or SCHOOL_ICONS[-spellID] or [[Interface\Icons\INV_Misc_QuestionMark]]
+	end
 	local spellTexture = spellIconOverrides[spellID] or spellTextureCache[spellID] or C_Spell.GetSpellTexture(spellID)
 	spellTextureCache[spellID] = spellTexture
 	return spellTexture

@@ -651,6 +651,31 @@ function filters:SpellPassesFilters(tree, spellName, spellID, isPeriodic, destGU
 	return true, self:IsFilteredSpell(tree, spellID, isPeriodic and 2 or 1)
 end
 
+-- WoW: Forever port: the target checks of SpellPassesFilters, for hits read from UNIT_COMBAT
+function filters:TargetPassesFilters(tree, spellID, destGUID, destName, targetLevel)
+	if targetLevel == -1 and self.profile.ignoreOutdoorBosses then
+		addon:Debug(format("Skipped %s. Target is a boss outside of a raid.", destName))
+		return
+	end
+
+	local levelDiff = 0
+	if (targetLevel > 0) and (targetLevel < UnitLevel("player")) then
+		levelDiff = (UnitLevel("player") - targetLevel)
+	end
+
+	if tree ~= "heal" and (self.profile.levelFilter >= 0) and (self.profile.levelFilter < levelDiff) then
+		addon:Debug(format("Skipped %s. Too low level (%d).", destName, targetLevel))
+		return
+	end
+
+	if self:IsFilteredTarget(destName, destGUID) then
+		addon:Debug(format("Skipped %s. In mob filter.", destName))
+		return
+	end
+
+	return true, self:IsFilteredSpell(tree, spellID, 1)
+end
+
 function filters:FilterSpell(filter, tree, data)
 	data.filtered = filter
 	addon:GetSpellInfo(tree, data.id, data.periodic).filtered = filter
