@@ -1,5 +1,9 @@
 # Critline
 
+## v4.7.1-forever8 (unofficial WoW: Forever port)
+
+- The level filter is now off by default. With the old default (1), hits on mobs more than one level below you were never recorded, which blocked almost every record while levelling. You can turn it back on under Filters.
+
 ## v4.7.1-forever7 (unofficial WoW: Forever port)
 
 - Diagnostics: each session's startup steps, the last 60 hit events with their result, and Lua errors in hit tracking are saved per character in `CritlineDiag` (SavedVariables).

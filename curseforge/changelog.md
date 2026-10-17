@@ -1,3 +1,8 @@
+## CritLine Forever v4.7.1-forever8
+
+- Fixed: hardly anything was recorded while levelling. The level filter ignored mobs more than one level below
+  you, and it is now off by default. You can turn it back on under Filters → Level filter.
+
 ## CritLine Forever v4.7.1-forever6
 
 - New `/cl status`: shows whether tracking is running, which settings can block records, and the last hit with

@@ -1,7 +1,7 @@
 ## Interface: 16001
 ## Title: CritLine Forever: AuraMonitor
 ## IconTexture: Interface\AddOns\Critline\Critline
-## Version: v4.7.1-forever7
+## Version: v4.7.1-forever8
 ## Notes: Aura monitoring module for Critline.
 ## Author: Lombra
 ## X-Port: WoW: Forever port by The_Yonaz, distributed with written permission from Lombra. See PORTING.md.

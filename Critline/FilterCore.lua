@@ -415,7 +415,8 @@ local defaults = {
 		ignoreMobFilter = false,
 		ignoreAuraFilter = false,
 		suppressMC = true,
-		levelFilter = 1,
+		-- WoW: Forever port: off by default; levelling against lower level mobs is the norm there
+		levelFilter = -1,
 		ignoreOutdoorBosses = true,
 	},
 	global = {
