@@ -1,6 +1,6 @@
-## v4.7.1-forever4: first release for WoW: Forever
+## CritLine Forever v4.7.1-forever4: first release
 
-Unofficial port of Critline v4.7.1 by Lombra, published with Lombra's written permission.
+Unofficial WoW: Forever port of Critline v4.7.1 by Lombra, published with Lombra's written permission.
 
 ### WoW: Forever support
 - Runs on WoW: Forever (Interface 16001).
