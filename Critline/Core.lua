@@ -237,6 +237,7 @@ LSM:Register("sound", "Level up", 567431) -- Sound\Interface\LevelUp.ogg
 Critline.SlashCmdHandlers = {
 	debug = function() Critline:ToggleDebug() end,
 	combatlog = function() Critline:ToggleForceCombatLog() end,
+	status = function() Critline:PrintStatus() end,
 }
 
 SlashCmdList.CRITLINE = function(msg)
@@ -503,9 +504,16 @@ function Critline:OnInitialize()
 	self.percharDB = percharDB
 
 	-- dual spec support
+	-- WoW: Forever port: another addon's newer LibDualSpec may take over; don't let it stop record tracking
 	local LibDualSpec = LibStub("LibDualSpec-1.0")
-	LibDualSpec:EnhanceDatabase(self.db, addonName)
-	LibDualSpec:EnhanceDatabase(self.percharDB, addonName)
+	local ok, err = pcall(function()
+		LibDualSpec:EnhanceDatabase(self.db, addonName)
+		LibDualSpec:EnhanceDatabase(self.percharDB, addonName)
+	end)
+	if not ok then
+		self.dualSpecError = err
+		self:Message("Dual spec profiles are unavailable: "..tostring(err))
+	end
 
 	db.RegisterCallback(self, "OnProfileChanged", "LoadSettings")
 	db.RegisterCallback(self, "OnProfileCopied", "LoadSettings")
@@ -516,8 +524,10 @@ function Critline:OnInitialize()
 	percharDB.RegisterCallback(self, "OnProfileReset", "LoadPerCharSettings")
 
 	if self:IsCombatLogAvailable() then
+		self.trackingMode = "combat log"
 		self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 	elseif self.unitCombat then
+		self.trackingMode = "UNIT_COMBAT"
 		self.unitCombat:Enable()
 		self:Message(L["The combat log is closed to addons on this game client. Records are kept per damage school, read from your target's combat events."])
 	else
@@ -835,6 +845,24 @@ function Critline:IsCombatLogAvailable()
 		return true
 	end
 	return CombatLogGetCurrentEventInfo ~= nil and issecretvalue == nil
+end
+
+-- WoW: Forever port: one command that shows why records may not be registered
+function Critline:PrintStatus()
+	local profile = self.db.profile
+	local trees = self.percharDB.profile
+	self:Message(format("%s, tracking: %s", C_AddOns.GetAddOnMetadata(addonName, "Version") or "?", self.trackingMode or "|cffff0000not started|r"))
+	self:Message(format("Record damage: %s, healing: %s, pet: %s; PvE: %s, PvP: %s", tostring(trees.dmg), tostring(trees.heal), tostring(trees.pet), tostring(profile.PvE), tostring(profile.PvP)))
+	self:Message(format("In group: %s, only record while solo: %s", tostring(IsInGroup()), tostring(profile.unitCombatSoloOnly)))
+	if self.filters then
+		self:Message(format("Level filter: %s, ignore outdoor bosses: %s", tostring(self.filters.profile.levelFilter), tostring(self.filters.profile.ignoreOutdoorBosses)))
+	end
+	if self.dualSpecError then
+		self:Message("Dual spec error: "..tostring(self.dualSpecError))
+	end
+	if self.unitCombat then
+		self.unitCombat:PrintStatus()
+	end
 end
 
 function Critline:ToggleForceCombatLog()

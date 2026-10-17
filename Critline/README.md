@@ -1,6 +1,6 @@
 # Critline
 
-> **CritLine Forever (v4.7.1-forever5).** This is an unofficial WoW: Forever port by The_Yonaz, modified and distributed with the written permission of the copyright holder, Lombra. Critline has no open-source license; all rights are reserved by Lombra. On WoW: Forever the combat log is closed to addons, so records are read from your target's combat events and kept per damage school instead of per spell. See [PORTING.md](PORTING.md) for details, permission and limitations.
+> **CritLine Forever (v4.7.1-forever6).** This is an unofficial WoW: Forever port by The_Yonaz, modified and distributed with the written permission of the copyright holder, Lombra. Critline has no open-source license; all rights are reserved by Lombra. On WoW: Forever the combat log is closed to addons, so records are read from your target's combat events and kept per damage school instead of per spell. See [PORTING.md](PORTING.md) for details, permission and limitations.
 
 - **Original creator:** Sordit
 

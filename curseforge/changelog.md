@@ -1,3 +1,10 @@
+## CritLine Forever v4.7.1-forever6
+
+- New `/cl status`: shows whether tracking is running, which settings can block records, and the last hit with
+  the reason it was or wasn't recorded.
+- `/cl debug` now explains every skipped hit.
+- Fixed: a newer LibDualSpec loaded by another addon (for example BigWigs) could stop recording.
+
 ## CritLine Forever v4.7.1-forever5
 
 - Pet records: hits on your target while your pet attacks it and you don't are now recorded in the pet tab.

@@ -45,7 +45,8 @@ If Blizzard reopens the combat log to addons, you can turn per-spell records bac
 | Command | What it does |
 |---|---|
 | `/cl` or `/critline` | Open the options |
-| `/cl debug` | Print why a hit was or wasn't recorded |
+| `/cl status` | Show whether recording is running and why the last hit was or wasn't recorded |
+| `/cl debug` | Print why each hit was or wasn't recorded |
 | `/cl aura` | Open the AuraMonitor (requires Critline: AuraMonitor) |
 | `/cl combatlog` | Force combat log tracking (for testing, needs `/reload`) |
 
