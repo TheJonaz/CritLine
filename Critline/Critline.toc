@@ -1,0 +1,38 @@
+## Interface: 110000
+## Title: Critline
+## IconTexture: Interface\Icons\Ability_SteelMelee
+## Version: v4.7.1
+## Notes: Saves your normal and critical records and flashes a message if you break the record.
+## Author: Lombra
+
+## X-Curse-Project-ID: 983
+## X-WoWI-ID: 12476
+
+## SavedVariables: CritlineDB
+## SavedVariablesPerCharacter: CritlinePerCharDB
+
+embeds.xml
+
+Locales\enUS.lua
+Locales\deDE.lua
+Locales\esES.lua
+Locales\frFR.lua
+Locales\koKR.lua
+Locales\ruRU.lua
+Locales\zhCN.lua
+Locales\zhTW.lua
+
+Templates.lua
+Core.lua
+
+SpellList.lua
+FilterCore.lua
+FilterGUI.lua
+Splash.lua
+Display.lua
+Minimap.lua
+Reset.lua
+Announce.lua
+Advanced.lua
+Broker.lua
+Profiles.lua
