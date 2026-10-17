@@ -17,16 +17,23 @@ local parentMT = {__index = setmetatable(Options.ParentPrototype, {__index = Opt
 local Prototype = Options.Prototype
 local ParentPrototype = Options.ParentPrototype
 
+-- 12.0 settings API (Midnight, WoW: Forever): categories must keep their own ID, or OpenToCategory does nothing
+local keepCategoryID = C_SettingsUtil and C_SettingsUtil.OpenSettingsPanel
+
 local function createFrame(name, parent)
 	local frame = CreateFrame("Frame")
 
 	if parent then
 		local subCategory, layout = Settings.RegisterCanvasLayoutSubcategory(parent, frame, name)
-		subCategory.ID = name
+		if not keepCategoryID then
+			subCategory.ID = name
+		end
 		frame.category = subCategory
 	else
 		local category, layout = Settings.RegisterCanvasLayoutCategory(frame, name)
-		category.ID = name
+		if not keepCategoryID then
+			category.ID = name
+		end
 		Settings.RegisterAddOnCategory(category)
 		frame.category = category
 	end
@@ -93,7 +100,7 @@ function Prototype:SetDatabase(database, useProfile)
 end
 
 function Prototype:Open()
-	Settings.OpenToCategory(self.category.ID)
+	Settings.OpenToCategory(self.category:GetID())
 end
 
 function Prototype:SetHandler(tbl)

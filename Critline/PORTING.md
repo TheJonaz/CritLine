@@ -66,7 +66,9 @@ heal from that event.
   combat, instead of raising an error.
 - **API replacements:** `ChatFrame_OpenChat` → `ChatFrameUtil.OpenChat` (with fallback),
   `SendChatMessage` → `C_ChatInfo.SendChatMessage` (with fallback), `SetMinResize`/`SetMaxResize` →
-  `SetResizeBounds` (Libra). `AddonCompartmentFrame` registration is skipped if the frame is missing.
+  `SetResizeBounds` (Libra). On the 12.0 settings API (`C_SettingsUtil.OpenSettingsPanel` exists),
+  Libra no longer overrides the options category ID with its name, because that stops
+  `Settings.OpenToCategory` from opening it. `AddonCompartmentFrame` registration is skipped if the frame is missing.
 
 ## Known limitations
 

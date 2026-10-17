@@ -1,5 +1,9 @@
 # Critline
 
+## v4.7.1-forever3 (unofficial WoW: Forever port)
+
+- Fix: right-clicking the minimap button (and `/cl`) didn't open the options. Libra no longer overrides the settings category ID on the 12.0 settings API.
+
 ## v4.7.1-forever2 (unofficial WoW: Forever port)
 
 - Record hits again without the combat log: read `UNIT_COMBAT` on your target (and heals on yourself), and keep records per damage school (Physical, Fire, ...).
