@@ -1,5 +1,7 @@
 # Critline
 
+> **WoW: Forever port (v4.7.1-forever1).** This is an unofficial port by The_Yonaz, modified and distributed with the written permission of the copyright holder, Lombra. Critline has no open-source license; all rights are reserved by Lombra. On WoW: Forever the combat log is closed to addons, so new records cannot be registered. See [PORTING.md](PORTING.md) for details, permission and limitations.
+
 - **Original creator:** Sordit
 
 - Previous maintainer: Uggh

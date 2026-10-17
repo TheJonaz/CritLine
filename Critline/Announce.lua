@@ -11,6 +11,7 @@ local function announce(data, channel, target)
 	local normal = data.normal and addon:ShortenNumber(data.normal.amount)
 	local crit = data.crit and addon:ShortenNumber(data.crit.amount)
 	local text = format(announceFormat, addon:GetFullSpellName(data.name, data.periodic, true), (normal or "-"), (crit or "-"))
+	local SendChatMessage = C_ChatInfo.SendChatMessage or SendChatMessage
 	SendChatMessage(text, channel, nil, target)
 end
 

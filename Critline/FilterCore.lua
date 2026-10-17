@@ -437,8 +437,11 @@ function filters:OnInitialize()
 	self.config:SetHandler(self)
 
 	self:RegisterEvent("PLAYER_LOGIN")
-	self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
-	self:RegisterEvent("UNIT_AURA")
+	-- aura data may be secret in combat where the combat log is blocked, and filters only matter when recording
+	if addon:IsCombatLogAvailable() then
+		self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+		self:RegisterEvent("UNIT_AURA")
+	end
 	self:RegisterEvent("UNIT_NAME_UPDATE")
 	self:RegisterEvent("PLAYER_REGEN_DISABLED")
 	self:RegisterEvent("PLAYER_CONTROL_LOST")
@@ -566,6 +569,7 @@ function filters:ScanAuras(unit)
 			local auraData = GetAuraDataByIndex(unit, i, filter)
 			if not auraData then break end
 			self:UnregisterEvent("UNIT_NAME_UPDATE")
+			if issecretvalue and issecretvalue(auraData.spellId) then break end
 			if self:IsFilteredAura(auraData.spellId) then
 				isEmpowered[unit] = true
 				return true

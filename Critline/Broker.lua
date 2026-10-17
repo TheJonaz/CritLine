@@ -32,7 +32,12 @@ for k, v in pairs(addon.trees) do
 				end
 				local normal = normalSpell and format("%s (%s)", addon:ShortenNumber(normalRecord), normalSpell) or "-"
 				local crit   = critSpell   and format("%s (%s)", addon:ShortenNumber(critRecord),   critSpell)   or "-"
-				ChatFrame_OpenChat(format(msgFormat, normal, crit))
+				local OpenChat = ChatFrameUtil and ChatFrameUtil.OpenChat or ChatFrame_OpenChat
+				if OpenChat then
+					OpenChat(format(msgFormat, normal, crit))
+				else
+					addon:Message(format(msgFormat, normal, crit))
+				end
 			else
 				addon:OpenConfig()
 			end

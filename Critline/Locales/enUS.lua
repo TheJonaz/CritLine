@@ -2,6 +2,7 @@
 if not L then return end
 
 -- common
+L["Combat log access is blocked by this game client. Existing records are shown, but no new records can be registered."] = true
 L["damage"] = true
 L["Damage"] = true
 L["healing"] = true

@@ -29,8 +29,7 @@ local attributes = {
 		local titleRegion = self:CreateTitleRegion() -- FIX
 	end,
 	resizeBounds = function(self, value)
-		self:SetMinResize(value.minResize.x, value.minResize.y)
-		self:SetMaxResize(value.maxResize.x, value.maxResize.y)
+		self:SetResizeBounds(value.minResize.x, value.minResize.y, value.maxResize.x, value.maxResize.y)
 	end,
 	backdrop = function(self, value)
 		self:SetBackdrop({

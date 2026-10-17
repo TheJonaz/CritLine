@@ -44,7 +44,9 @@ frame:SetBackdropBorderColor(0.5, 0.5, 0.5)
 frame:Hide()
 
 frame:RegisterUnitEvent("UNIT_AURA", "player")
-frame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+if Critline:IsCombatLogAvailable() then
+	frame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+end
 frame:RegisterEvent("PLAYER_LOGIN")
 frame:RegisterEvent("UNIT_NAME_UPDATE")
 frame:RegisterEvent("PLAYER_REGEN_DISABLED")
@@ -431,6 +433,8 @@ function frame:ScanAuras()
 		for i = 1, 40 do
 			local auraData = GetAuraDataByIndex("player", i, filter)
 			if not auraData then break end
+			-- aura data is secret in combat on WoW: Forever; skip rather than error
+			if issecretvalue and issecretvalue(auraData.spellId) then break end
 			local source = auraData.sourceUnit
 			self:RegisterAura("self", auraData.spellId, auraData.name, auraType, source and UnitName(source), source and UnitGUID(source), UnitName("player"), UnitGUID("player"))
 		end

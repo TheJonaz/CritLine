@@ -18,6 +18,7 @@ local debugging
 local floor, band, tonumber, format = floor, bit.band, tonumber, format
 local CombatLogGetCurrentEventInfo = CombatLogGetCurrentEventInfo
 local CombatLog_Object_IsA = CombatLog_Object_IsA
+local issecretvalue = issecretvalue
 local HasPetUI = HasPetUI
 local GetSpellName = C_Spell.GetSpellName
 local GetSpellLink = C_Spell.GetSpellLink
@@ -235,6 +236,7 @@ LSM:Register("sound", "Level up", 567431) -- Sound\Interface\LevelUp.ogg
 
 Critline.SlashCmdHandlers = {
 	debug = function() Critline:ToggleDebug() end,
+	combatlog = function() Critline:ToggleForceCombatLog() end,
 }
 
 SlashCmdList.CRITLINE = function(msg)
@@ -250,14 +252,14 @@ end
 SLASH_CRITLINE1 = "/critline"
 SLASH_CRITLINE2 = "/cl"
 
-AddonCompartmentFrame:RegisterAddon({
+if AddonCompartmentFrame then AddonCompartmentFrame:RegisterAddon({
 	text = "Critline",
 	icon = Critline.trees.dmg.icon,
 	notCheckable = true,
 	func = function()
 		Critline:OpenConfig()
 	end,
-})
+}) end
 
 
 local config = Critline:CreateOptionsFrame(addonName)
@@ -443,6 +445,8 @@ local defaults = {
 			-- [62078] = format("%s (%s)", GetSpellName(62078), GetSpellName(768)), -- Swipe (Cat Form)
 		},
 		spellIconOverrides = {},
+		-- WoW: Forever port: register for the combat log even when the client appears to block it
+		forceCombatLog = false,
 	},
 }
 
@@ -496,7 +500,11 @@ function Critline:OnInitialize()
 	percharDB.RegisterCallback(self, "OnProfileCopied", "LoadPerCharSettings")
 	percharDB.RegisterCallback(self, "OnProfileReset", "LoadPerCharSettings")
 
-	self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+	if self:IsCombatLogAvailable() then
+		self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+	else
+		self:Message(L["Combat log access is blocked by this game client. Existing records are shown, but no new records can be registered."])
+	end
 	self:RegisterEvent("PLAYER_ENTERING_WORLD")
 
 	spellMappings = db.global.spellMappings
@@ -795,6 +803,21 @@ end
 function Critline:ToggleDebug()
 	debugging = not debugging
 	self:Message("Debugging "..(debugging and "enabled" or "disabled"))
+end
+
+-- WoW: Forever shares Midnight's addon restrictions: the combat log is closed to addons, and registering
+-- COMBAT_LOG_EVENT_UNFILTERED raises ADDON_ACTION_FORBIDDEN. The secret value API is used as the tell.
+function Critline:IsCombatLogAvailable()
+	if self.db and self.db.global.forceCombatLog then
+		return true
+	end
+	return CombatLogGetCurrentEventInfo ~= nil and issecretvalue == nil
+end
+
+function Critline:ToggleForceCombatLog()
+	local global = self.db.global
+	global.forceCombatLog = not global.forceCombatLog
+	self:Message(format("Forced combat log tracking %s. Type /reload to apply.", global.forceCombatLog and "enabled" or "disabled"))
 end
 
 function Critline:OpenConfig()
