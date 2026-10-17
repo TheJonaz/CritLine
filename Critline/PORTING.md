@@ -77,8 +77,9 @@ heal from that event.
 - Without the combat log, Critline cannot tell **which spell** hit. `C_DamageMeter` only gives
   totals per spell, and they are secret in combat. `UNIT_COMBAT` gives amount and crit, but not the
   spell or the attacker. Records are therefore per school.
-- Pet hits on your target count as yours (in the damage tree) while you are attacking. The pet tree
-  is not filled. DoT ticks and hits from others' AoE can be counted while you are attacking.
+- While you are attacking, your pet's hits on your target count as yours (in the damage tree).
+  They are only recorded in the pet tree while your pet attacks your target and you don't. DoT
+  ticks and hits from others' AoE can be counted while you are attacking.
 - Not tested in game at the time of writing. `UIDropDownMenu` (used by Libra and the spell list)
   has been deprecated in modern clients and may need replacing if it is removed.
 - This is Lombra's standalone Critline, **not** Titan Panel [CritLine Forever]. Critline has no

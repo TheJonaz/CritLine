@@ -47,6 +47,14 @@ local function isAttacking()
 	return meleeActive or autoRepeatActive or castRecently()
 end
 
+-- your pet is attacking your target
+local function petAttacking()
+	if not readable(UnitExists("pet"), false) then
+		return false
+	end
+	return readable(UnitIsUnit("pettarget", "target"), false) == true
+end
+
 -- mob tagged by someone outside your group: its damage isn't yours
 local function tappedByOthers()
 	return UnitIsTapDenied and readable(UnitIsTapDenied("target"), false) == true
@@ -114,10 +122,6 @@ function module:UNIT_COMBAT(unit, action, flagText, amount, schoolMask)
 	local critical = flagText == "CRITICAL"
 	local tree = isHeal and "heal" or "dmg"
 
-	if not addon.percharDB.profile[tree] then
-		return
-	end
-
 	-- in a group the hit may come from someone else
 	if profile.unitCombatSoloOnly and IsInGroup() then
 		return
@@ -142,14 +146,24 @@ function module:UNIT_COMBAT(unit, action, flagText, amount, schoolMask)
 			addon:Debug("Target is tagged by someone else. Return.")
 			return
 		end
+		-- while you attack, your pet's hits can't be told apart from yours and count as yours;
+		-- while only your pet attacks your target, the hit is the pet's
 		if not isAttacking() then
-			addon:Debug("Not attacking. Return.")
-			return
+			if not petAttacking() then
+				addon:Debug("Neither you nor your pet is attacking. Return.")
+				return
+			end
+			tree = "pet"
 		end
 		if profile.unitCombatIgnoreReactive and schoolMask ~= 1 and not critical and GetTime() - lastHitTakenTime <= REACTIVE_WINDOW then
 			addon:Debug("Reactive damage ignored.")
 			return
 		end
+	end
+
+	if not addon.percharDB.profile[tree] then
+		addon:Debug(format("Not recording %s spells. Return.", tree))
+		return
 	end
 
 	local destName = readable(UnitName(unit), UNKNOWN) or UNKNOWN

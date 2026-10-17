@@ -1,5 +1,9 @@
 # Critline
 
+## v4.7.1-forever5 (unofficial WoW: Forever port)
+
+- Pet records without the combat log: hits on your target while your pet attacks it and you don't are recorded in the pet tree. Previously they were dropped.
+
 ## v4.7.1-forever4 (unofficial WoW: Forever port)
 
 - New addon icon.

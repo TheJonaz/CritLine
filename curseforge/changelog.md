@@ -1,3 +1,9 @@
+## CritLine Forever v4.7.1-forever5
+
+- Pet records: hits on your target while your pet attacks it and you don't are now recorded in the pet tab.
+  Previously they weren't recorded at all. While you attack too, the game doesn't say who hit, so those
+  hits still count as yours.
+
 ## CritLine Forever v4.7.1-forever4: first release
 
 Unofficial WoW: Forever port of Critline v4.7.1 by Lombra, published with Lombra's written permission.

@@ -52,8 +52,8 @@ If Blizzard reopens the combat log to addons, you can turn per-spell records bac
 ## Known limitations
 
 - Records are per school, not per spell. The game no longer tells addons which spell hit.
-- While you are attacking, your pet's hits and DoT ticks on your target count as your own. The pet tab
-  stays empty.
+- Your pet's hits go in the pet tab when your pet attacks your target and you don't. While you attack too,
+  the pet's hits and DoT ticks count as your own.
 - Aura filters and the split between direct hits and ticks only work with the combat log.
 - **Titan Panel [CritLine Forever]** is a separate Titan Panel plugin (based on the older CritLine by Uggh), not
   part of this addon. It also uses `/critline`, so if you have both, use `/cl`.
