@@ -1,7 +1,7 @@
-## Interface: 110000, 16001
-## Title: Critline: AuraMonitor
-## IconTexture: Interface\Icons\Ability_SteelMelee
-## Version: v4.7.1-forever3
+## Interface: 16001
+## Title: Critline: AuraMonitor |cff9d9d9d(Forever port)|r
+## IconTexture: Interface\AddOns\Critline\Critline
+## Version: v4.7.1-forever4
 ## Notes: Aura monitoring module for Critline.
 ## Author: Lombra
 ## X-Port: WoW: Forever port by The_Yonaz, distributed with written permission from Lombra. See PORTING.md.

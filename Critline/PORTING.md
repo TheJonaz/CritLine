@@ -37,7 +37,9 @@ consequence for Critline is that **the combat log is closed to addons**. Registe
 `COMBAT_LOG_EVENT_UNFILTERED` raises `ADDON_ACTION_FORBIDDEN`, and Critline gets every hit, crit and
 heal from that event.
 
-- **Both TOC files** declare `## Interface: 110000, 16001` and version `v4.7.1-forever1`.
+- **Both TOC files** declare `## Interface: 16001` (WoW: Forever only), show "(Forever port)" in the
+  title and use the port's own icon (`Critline.tga`). The original project's CurseForge and
+  WoWInterface IDs have been removed, because this port is published as a separate project.
 - **Combat log guard (`Core.lua`, `FilterCore.lua`, `Critline_AuraMonitor`).** `Critline:IsCombatLogAvailable()`
   checks whether the client exposes the combat log. The secret value API (`issecretvalue`) existing
   is taken as the sign that it does not. If the combat log is blocked, Critline does not register

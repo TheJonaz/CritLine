@@ -1,5 +1,11 @@
 # Critline
 
+## v4.7.1-forever4 (unofficial WoW: Forever port)
+
+- New addon icon.
+- The TOC files now target WoW: Forever only (Interface 16001), and the title shows "(Forever port)".
+- Removed the original project's CurseForge and WoWInterface IDs from the TOC; this port is published as a separate project.
+
 ## v4.7.1-forever3 (unofficial WoW: Forever port)
 
 - Fix: right-clicking the minimap button (and `/cl`) didn't open the options. Libra no longer overrides the settings category ID on the 12.0 settings API.

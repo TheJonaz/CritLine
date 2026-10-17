@@ -1,13 +1,13 @@
-## Interface: 110000, 16001
-## Title: Critline
-## IconTexture: Interface\Icons\Ability_SteelMelee
-## Version: v4.7.1-forever3
+## Interface: 16001
+## Title: Critline |cff9d9d9d(Forever port)|r
+## IconTexture: Interface\AddOns\Critline\Critline
+## Version: v4.7.1-forever4
 ## Notes: Saves your normal and critical records and flashes a message if you break the record.
 ## Author: Lombra
 ## X-Port: WoW: Forever port by The_Yonaz, distributed with written permission from Lombra. See PORTING.md.
 
-## X-Curse-Project-ID: 983
-## X-WoWI-ID: 12476
+## X-Original: https://github.com/Lombra/Critline
+# X-Curse-Project-ID: add this port's own project ID after creating the CurseForge project (983 is Lombra's original)
 
 ## SavedVariables: CritlineDB
 ## SavedVariablesPerCharacter: CritlinePerCharDB
