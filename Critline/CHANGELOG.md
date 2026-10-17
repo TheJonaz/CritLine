@@ -1,5 +1,9 @@
 # Critline
 
+## v4.7.1-forever7 (unofficial WoW: Forever port)
+
+- Diagnostics: each session's startup steps, the last 60 hit events with their result, and Lua errors in hit tracking are saved per character in `CritlineDiag` (SavedVariables).
+
 ## v4.7.1-forever6 (unofficial WoW: Forever port)
 
 - New `/cl status`: shows the tracking mode, settings that block records, and the last hit event with why it was or wasn't recorded.

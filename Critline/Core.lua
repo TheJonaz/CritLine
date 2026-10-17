@@ -478,7 +478,24 @@ local treeDefaults = {
 	WARLOCK	= {pet  = true},
 }
 
+-- WoW: Forever port: per character diagnostics in SavedVariables, so problems can be read back after a session
+function Critline:DiagStep(text)
+	local steps = CritlineDiag.steps
+	steps[#steps + 1] = text
+end
+
 function Critline:OnInitialize()
+	CritlineDiag = {
+		session = date("%Y-%m-%d %H:%M:%S"),
+		version = C_AddOns.GetAddOnMetadata(addonName, "Version"),
+		build = (select(4, GetBuildInfo())),
+		project = WOW_PROJECT_ID,
+		steps = {},
+		log = {},
+		errors = {},
+	}
+	self:DiagStep("OnInitialize")
+
 	local AceDB = LibStub("AceDB-3.0")
 	local db = AceDB:New("CritlineDB", defaults, nil)
 	self.db = db
@@ -514,6 +531,7 @@ function Critline:OnInitialize()
 		self.dualSpecError = err
 		self:Message("Dual spec profiles are unavailable: "..tostring(err))
 	end
+	self:DiagStep("LibDualSpec "..(ok and "ok" or "error: "..tostring(err)))
 
 	db.RegisterCallback(self, "OnProfileChanged", "LoadSettings")
 	db.RegisterCallback(self, "OnProfileCopied", "LoadSettings")
@@ -533,6 +551,7 @@ function Critline:OnInitialize()
 	else
 		self:Message(L["Combat log access is blocked by this game client. Existing records are shown, but no new records can be registered."])
 	end
+	self:DiagStep("Tracking: "..tostring(self.trackingMode))
 	self:RegisterEvent("PLAYER_ENTERING_WORLD")
 
 	spellMappings = db.global.spellMappings
@@ -549,6 +568,7 @@ function Critline:OnInitialize()
 
 	self:LoadSettings()
 	self:LoadPerCharSettings()
+	self:DiagStep("OnInitialize done")
 end
 
 function Critline:LoadSettings()

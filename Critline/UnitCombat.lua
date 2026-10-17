@@ -42,10 +42,23 @@ local function readable(value, fallback)
 	return value
 end
 
+-- keep the last hits and their results in CritlineDiag (SavedVariables)
+local MAX_LOG = 60
+
+local function logResult()
+	if not (CritlineDiag and lastEvent) then return end
+	local log = CritlineDiag.log
+	log[#log + 1] = format("%s %s -> %s", date("%H:%M:%S"), lastEvent, lastResult or "?")
+	if #log > MAX_LOG then
+		tremove(log, 1)
+	end
+end
+
 -- remember why a hit was not recorded
 local function skip(reason)
 	lastResult = "skipped: "..reason
 	addon:Debug("Skipped hit. "..reason..".")
+	logResult()
 end
 
 local function castRecently()
@@ -70,6 +83,7 @@ local function tappedByOthers()
 end
 
 function module:Enable()
+	addon:DiagStep("UnitCombat enabled")
 	self:RegisterUnitEvent("UNIT_COMBAT", "target", "player")
 	self:RegisterUnitEvent("UNIT_SPELLCAST_SUCCEEDED", "player")
 	self:RegisterEvent("PLAYER_ENTER_COMBAT")
@@ -88,8 +102,22 @@ function module:PrintStatus()
 	end
 end
 
+local function onError(err)
+	err = tostring(err).."\n"..debugstack(2)
+	if CritlineDiag then
+		local errors = CritlineDiag.errors
+		if #errors < 20 then
+			errors[#errors + 1] = err
+		end
+	end
+	return err
+end
+
 module:SetScript("OnEvent", function(self, event, ...)
-	self[event](self, ...)
+	local ok, err = xpcall(self[event], onError, self, ...)
+	if not ok then
+		geterrorhandler()(err)
+	end
 end)
 
 function module:UNIT_SPELLCAST_SUCCEEDED()
@@ -215,11 +243,13 @@ function module:UNIT_COMBAT(unit, action, flagText, amount, schoolMask)
 		local passed
 		passed, isFiltered = addon.filters:TargetPassesFilters(tree, spellID, destGUID, destName, targetLevel)
 		if not passed then
-			lastResult = "skipped by filters (see /cl debug)"
+			lastResult = format("skipped by filters (target level %s, level filter %s)", tostring(targetLevel), tostring(addon.filters.profile.levelFilter))
+			logResult()
 			return
 		end
 	end
 
 	addon:StoreRecord(tree, spellID, 1, amount, critical, destName, targetLevel, isPvPTarget, isFiltered)
 	lastResult = format("recorded in %s%s", tree, isFiltered and " (filtered spell)" or "")
+	logResult()
 end

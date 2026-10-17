@@ -1,7 +1,7 @@
 ## Interface: 16001
 ## Title: CritLine Forever
 ## IconTexture: Interface\AddOns\Critline\Critline
-## Version: v4.7.1-forever6
+## Version: v4.7.1-forever7
 ## Notes: Saves your normal and critical records and flashes a message if you break the record.
 ## Author: Lombra
 ## X-Port: WoW: Forever port by The_Yonaz, distributed with written permission from Lombra. See PORTING.md.
@@ -10,7 +10,7 @@
 # X-Curse-Project-ID: add this port's own project ID after creating the CurseForge project (983 is Lombra's original)
 
 ## SavedVariables: CritlineDB
-## SavedVariablesPerCharacter: CritlinePerCharDB
+## SavedVariablesPerCharacter: CritlinePerCharDB, CritlineDiag
 
 embeds.xml
 
