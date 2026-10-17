@@ -3,7 +3,7 @@
 ## v4.7.1-forever4 (unofficial WoW: Forever port)
 
 - New addon icon.
-- The TOC files now target WoW: Forever only (Interface 16001), and the title shows "(Forever port)".
+- The TOC files now target WoW: Forever only (Interface 16001), and the addon is named "CritLine Forever".
 - Removed the original project's CurseForge and WoWInterface IDs from the TOC; this port is published as a separate project.
 
 ## v4.7.1-forever3 (unofficial WoW: Forever port)

@@ -1,4 +1,4 @@
-# Critline (Forever Port)
+# CritLine Forever
 
 Critline remembers your highest normal and critical hits and heals, and shows a message on screen when you break a record.
 

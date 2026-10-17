@@ -1,6 +1,6 @@
-# Critline – WoW: Forever port
+# CritLine Forever
 
-This is an unofficial port of **Critline v4.7.1** to **WoW: Forever** (Interface 16001).
+**CritLine Forever** is an unofficial port of **Critline v4.7.1** to **WoW: Forever** (Interface 16001).
 
 ## Copyright and permission
 
@@ -16,8 +16,8 @@ permission**:
 | Copyright holder | Lombra |
 | Permission granted to | The_Yonaz (porter) |
 | Form of permission | Written |
-| Date of permission | _YYYY-MM-DD (fill in)_ |
-| Where it was given | _e.g. e-mail, GitHub issue/PR link, Discord message (fill in)_ |
+| Date of permission | 2026-10-16 |
+| Where it was given | Message on CurseForge |
 | Scope | _e.g. port to WoW: Forever and distribute it on CurseForge/WoWInterface (fill in)_ |
 
 The permission covers this port only. It does not place Critline under an open-source license, and
@@ -37,7 +37,7 @@ consequence for Critline is that **the combat log is closed to addons**. Registe
 `COMBAT_LOG_EVENT_UNFILTERED` raises `ADDON_ACTION_FORBIDDEN`, and Critline gets every hit, crit and
 heal from that event.
 
-- **Both TOC files** declare `## Interface: 16001` (WoW: Forever only), show "(Forever port)" in the
+- **Both TOC files** declare `## Interface: 16001` (WoW: Forever only), show "CritLine Forever" as the
   title and use the port's own icon (`Critline.tga`). The original project's CurseForge and
   WoWInterface IDs have been removed, because this port is published as a separate project.
 - **Combat log guard (`Core.lua`, `FilterCore.lua`, `Critline_AuraMonitor`).** `Critline:IsCombatLogAvailable()`

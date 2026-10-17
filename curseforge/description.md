@@ -1,4 +1,4 @@
-# Critline (Forever Port)
+# CritLine Forever
 
 **Remembers your highest hits and crits, and flashes a message when you break a record. Ported to WoW: Forever.**
 
@@ -55,7 +55,8 @@ If Blizzard reopens the combat log to addons, you can turn per-spell records bac
 - While you are attacking, your pet's hits and DoT ticks on your target count as your own. The pet tab
   stays empty.
 - Aura filters and the split between direct hits and ticks only work with the combat log.
-- **Titan Panel [CritLine Forever]** also uses `/critline`. If you have both, use `/cl`.
+- **Titan Panel [CritLine Forever]** is a separate Titan Panel plugin (based on the older CritLine by Uggh), not
+  part of this addon. It also uses `/critline`, so if you have both, use `/cl`.
 - Records from retail or Classic don't carry over, because every game client keeps its own saved variables.
 
 ## Credits

@@ -1,5 +1,5 @@
 ## Interface: 16001
-## Title: Critline |cff9d9d9d(Forever port)|r
+## Title: CritLine Forever
 ## IconTexture: Interface\AddOns\Critline\Critline
 ## Version: v4.7.1-forever4
 ## Notes: Saves your normal and critical records and flashes a message if you break the record.

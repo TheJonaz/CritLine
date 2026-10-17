@@ -1,1 +1,1 @@
-Remembers your highest hits and crits and flashes a message on a new record. Unofficial WoW: Forever port of Lombra's Critline, published with permission.
+CritLine Forever remembers your highest hits and crits and flashes a message on a new record. Unofficial WoW: Forever port of Lombra's Critline, published with permission.
