@@ -565,10 +565,16 @@ function filters:ScanAuras(unit)
 		return
 	end
 
+	-- WoW: Forever port: aura filters need the combat log, and reading secret auras errors
+	if not addon:IsCombatLogAvailable() then
+		isEmpowered[unit] = false
+		return
+	end
+
 	for auraType, filter in pairs(auraTypes) do
 		for i = 1, 40 do
-			local auraData = GetAuraDataByIndex(unit, i, filter)
-			if not auraData then break end
+			local ok, auraData = pcall(GetAuraDataByIndex, unit, i, filter)
+			if not (ok and auraData) then break end
 			self:UnregisterEvent("UNIT_NAME_UPDATE")
 			if issecretvalue and issecretvalue(auraData.spellId) then break end
 			if self:IsFilteredAura(auraData.spellId) then

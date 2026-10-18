@@ -1,3 +1,8 @@
+## CritLine Forever v4.7.1-forever10
+
+- Fixed: a Lua error in combat from Critline: AuraMonitor (`Auras cannot be accessed when secret`).
+  AuraMonitor now scans your auras when combat ends.
+
 ## CritLine Forever v4.7.1-forever9
 
 - Fixed: a Lua error on login (`Profiles.lua:12: attempt to call a nil value`), and the empty Profiles pages.

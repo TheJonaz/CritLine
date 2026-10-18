@@ -50,6 +50,7 @@ end
 frame:RegisterEvent("PLAYER_LOGIN")
 frame:RegisterEvent("UNIT_NAME_UPDATE")
 frame:RegisterEvent("PLAYER_REGEN_DISABLED")
+frame:RegisterEvent("PLAYER_REGEN_ENABLED")
 frame:RegisterEvent("PLAYER_ENTERING_WORLD")
 frame:SetScript("OnEvent", function(self, event, ...)
 	self[event](self, ...)
@@ -428,14 +429,17 @@ local auraTypes = {
 }
 
 function frame:ScanAuras()
+	-- WoW: Forever port: auras are secret in combat and even reading them errors; rescan when combat ends
+	if issecretvalue and InCombatLockdown() then return end
 	local auras = {}
 	for auraType, filter in pairs(auraTypes) do
 		for i = 1, 40 do
-			local auraData = GetAuraDataByIndex("player", i, filter)
-			if not auraData then break end
+			local ok, auraData = pcall(GetAuraDataByIndex, "player", i, filter)
+			if not (ok and auraData) then break end
 			-- aura data is secret in combat on WoW: Forever; skip rather than error
 			if issecretvalue and issecretvalue(auraData.spellId) then break end
 			local source = auraData.sourceUnit
+			if issecretvalue and issecretvalue(source) then source = nil end
 			self:RegisterAura("self", auraData.spellId, auraData.name, auraType, source and UnitName(source), source and UnitGUID(source), UnitName("player"), UnitGUID("player"))
 		end
 	end
@@ -444,6 +448,7 @@ end
 
 frame.PLAYER_LOGIN = frame.ScanAuras
 frame.UNIT_AURA = frame.ScanAuras
+frame.PLAYER_REGEN_ENABLED = frame.ScanAuras
 
 local function getUnitInfo(guid)
 	if guid and guid ~= "" then

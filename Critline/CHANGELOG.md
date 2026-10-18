@@ -1,5 +1,9 @@
 # Critline
 
+## v4.7.1-forever10 (unofficial WoW: Forever port)
+
+- Fixed a Lua error in combat from Critline: AuraMonitor (`GetAuraDataByIndex(): Auras cannot be accessed when secret`). Auras are hidden from addons in combat, and even asking for them errors, so AuraMonitor now waits until combat ends before it scans. Critline itself no longer scans auras when the combat log is unavailable, because aura filters need the combat log.
+
 ## v4.7.1-forever9 (unofficial WoW: Forever port)
 
 - Fixed a Lua error on login (`Profiles.lua:12: attempt to call a nil value`). The profile controls needed the specialization API, which WoW: Forever doesn't have, so the Profiles and Spell profiles pages stayed empty. Spec profiles are now only shown when the game has specializations.
