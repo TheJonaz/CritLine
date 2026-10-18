@@ -11,7 +11,8 @@ local Prototype = AceDBControls.Prototype
 local mt = {__index = Prototype}
 
 local _, _, classID = UnitClass("player")
-local numSpecs = GetNumSpecializationsForClassID(classID)
+-- WoW: Forever port: the spec API may be missing; without specs there are no spec profiles
+local numSpecs = GetNumSpecializationsForClassID and GetNumSpecializationsForClassID(classID) or 0
 
 local L = {
 	default = "Default",
@@ -286,7 +287,7 @@ local function constructor(self, db, parent)
 		reset:SetText(L.reset)
 		objects.reset = reset
 		
-		local hasDualProfile = db:GetNamespace("LibDualSpec-1.0", true)
+		local hasDualProfile = numSpecs > 0 and db.IsDualSpecEnabled and db:GetNamespace("LibDualSpec-1.0", true)
 		if hasDualProfile then
 			frame:SetHeight(320)
 			local isDualSpecEnabled = db:IsDualSpecEnabled()

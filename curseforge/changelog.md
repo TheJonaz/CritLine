@@ -1,3 +1,8 @@
+## CritLine Forever v4.7.1-forever9
+
+- Fixed: a Lua error on login (`Profiles.lua:12: attempt to call a nil value`), and the empty Profiles pages.
+  WoW: Forever has no specializations, and the profile controls depended on them.
+
 ## CritLine Forever v4.7.1-forever8
 
 - Fixed: hardly anything was recorded while levelling. The level filter ignored mobs more than one level below

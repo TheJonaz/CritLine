@@ -9,6 +9,11 @@ spellProfiles:SetDescription("This profile stores individual tree settings, incl
 local profileUI = Critline:NewModule("Profiles")
 
 function profileUI:OnInitialize()
+	-- WoW: Forever port: skip the profile controls if Libra's AceDBControls failed to load
+	if not Critline.CreateAceDBControls then
+		Critline:DiagStep("AceDBControls missing")
+		return
+	end
 	Critline:CreateAceDBControls(Critline.db, profiles):SetPoint("CENTER")
 	Critline:CreateAceDBControls(Critline.percharDB, spellProfiles):SetPoint("CENTER")
 end

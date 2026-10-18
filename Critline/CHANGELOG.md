@@ -1,5 +1,9 @@
 # Critline
 
+## v4.7.1-forever9 (unofficial WoW: Forever port)
+
+- Fixed a Lua error on login (`Profiles.lua:12: attempt to call a nil value`). The profile controls needed the specialization API, which WoW: Forever doesn't have, so the Profiles and Spell profiles pages stayed empty. Spec profiles are now only shown when the game has specializations.
+
 ## v4.7.1-forever8 (unofficial WoW: Forever port)
 
 - The level filter is now off by default. With the old default (1), hits on mobs more than one level below you were never recorded, which blocked almost every record while levelling. You can turn it back on under Filters.
