@@ -34,3 +34,4 @@ jobs:
         with:
           name: test-package
           path: .release/*.zip
+          include-hidden-files: true
