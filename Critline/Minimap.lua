@@ -106,6 +106,62 @@ function minimap:LoadSettings()
 	self:Move(self.db.profile.pos)
 end
 
+-- the minimap may not have its final size or shape when settings load (other addons and the client
+-- resize it after login), so place the button again once the world is loaded and whenever it changes
+-- RegisterEvent here is Libra's (the module embeds it), which calls the handler with the module as self
+minimap:RegisterEvent("PLAYER_ENTERING_WORLD", function(self)
+	if self.db then
+		self:Move(self.db.profile.pos)
+	end
+end)
+Minimap:HookScript("OnSizeChanged", function()
+	if minimap.db then
+		minimap:Move(minimap.db.profile.pos)
+	end
+end)
+
+-- per minimap shape, which quadrants are rounded (same table as LibDBIcon)
+local minimapShapes = {
+	["ROUND"] = {true, true, true, true},
+	["SQUARE"] = {false, false, false, false},
+	["CORNER-TOPLEFT"] = {false, false, false, true},
+	["CORNER-TOPRIGHT"] = {false, false, true, false},
+	["CORNER-BOTTOMLEFT"] = {false, true, false, false},
+	["CORNER-BOTTOMRIGHT"] = {true, false, false, false},
+	["SIDE-LEFT"] = {false, true, false, true},
+	["SIDE-RIGHT"] = {true, false, true, false},
+	["SIDE-TOP"] = {false, false, true, true},
+	["SIDE-BOTTOM"] = {true, true, false, false},
+	["TRICORNER-TOPLEFT"] = {false, true, true, true},
+	["TRICORNER-TOPRIGHT"] = {true, false, true, true},
+	["TRICORNER-BOTTOMLEFT"] = {true, true, false, true},
+	["TRICORNER-BOTTOMRIGHT"] = {true, true, true, false},
+}
+
+-- angle is in degrees; keep the button on the minimap's edge whatever its size and shape
 function minimap:Move(angle)
-	self:SetPoint("CENTER", 105 * cos(angle), 105 * sin(angle))
+	local x, y = cos(angle), sin(angle)
+	local q = 1
+	if x < 0 then q = q + 1 end
+	if y > 0 then q = q + 2 end
+	local shape = GetMinimapShape and GetMinimapShape() or "ROUND"
+	local quadTable = minimapShapes[shape] or minimapShapes.ROUND
+	local w = (Minimap:GetWidth() / 2) + 5
+	local h = (Minimap:GetHeight() / 2) + 5
+	if quadTable[q] then
+		x, y = x * w, y * h
+	else
+		local diagW = sqrt(2 * w ^ 2) - 10
+		local diagH = sqrt(2 * h ^ 2) - 10
+		x = max(-w, min(x * diagW, w))
+		y = max(-h, min(y * diagH, h))
+	end
+	self:ClearAllPoints()
+	self:SetPoint("CENTER", Minimap, "CENTER", x, y)
+end
+-- diagnostics: this file loaded to the end
+do
+	local ns = select(2, ...)
+	ns.loadedFiles = ns.loadedFiles or {}
+	ns.loadedFiles[#ns.loadedFiles + 1] = "Minimap"
 end

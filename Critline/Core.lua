@@ -203,11 +203,24 @@ local crit = function(a, b)
 	end
 end
 
+-- highest: sort by the bigger of normal and crit > normal > name
+local highest = function(a, b)
+	if a == b then return end
+	local bestA = max(a.normal and a.normal.amount or 0, a.crit and a.crit.amount or 0)
+	local bestB = max(b.normal and b.normal.amount or 0, b.crit and b.crit.amount or 0)
+	if bestA == bestB then
+		return normal(a, b)
+	end
+	return bestA > bestB
+end
+
 local recordSorters = {
 	alpha = alpha,
 	normal = normal,
 	crit = crit,
+	highest = highest,
 }
+Critline.recordSorters = recordSorters
 
 
 local callbacks = LibStub("CallbackHandler-1.0"):New(Critline)
@@ -238,6 +251,8 @@ Critline.SlashCmdHandlers = {
 	debug = function() Critline:ToggleDebug() end,
 	combatlog = function() Critline:ToggleForceCombatLog() end,
 	status = function() Critline:PrintStatus() end,
+	spells = function() Critline.unitCombat:PrintLearnedSpells() end,
+	forgetspells = function() Critline.unitCombat:ForgetLearnedSpells() end,
 }
 
 SlashCmdList.CRITLINE = function(msg)
@@ -265,6 +280,12 @@ if AddonCompartmentFrame then AddonCompartmentFrame:RegisterAddon({
 
 local config = Critline:CreateOptionsFrame(addonName)
 Critline.config = config
+config:SetLogo([[Interface\AddOns\Critline\Critline]])
+do
+	local GetMetadata = C_AddOns and C_AddOns.GetAddOnMetadata or GetAddOnMetadata
+	local version = GetMetadata and GetMetadata(addonName, "Version")
+	config:SetDescription(L["Remembers your highest hits and crits"]..(version and ("  ·  "..version) or ""))
+end
 
 do
 	local function set(self, value)
@@ -297,6 +318,10 @@ do
 
 	local options = {
 		{
+			type = "Section",
+			text = L["Recording"],
+		},
+		{
 			type = "CheckButton",
 			text = L["Record damage"],
 			tooltip = L["Check to enable damage events to be recorded."],
@@ -324,11 +349,14 @@ do
 			get = get,
 		},
 		{
+			type = "Section",
+			text = L["Targets"],
+		},
+		{
 			type = "CheckButton",
 			text = L["Record PvE"],
 			tooltip = L["Disable to ignore records where the target is an NPC."],
 			key = "PvE",
-			padding = 8,
 		},
 		{
 			type = "CheckButton",
@@ -341,6 +369,10 @@ do
 			text = L["Ignore vulnerability"],
 			tooltip = L["Enable to ignore additional damage due to vulnerability."],
 			key = "ignoreVulnerability",
+		},
+		{
+			type = "Section",
+			text = L["Without the combat log"],
 		},
 		{
 			type = "CheckButton",
@@ -356,6 +388,10 @@ do
 		},
 		{
 			newColumn = true,
+			type = "Section",
+			text = L["Tooltips"],
+		},
+		{
 			type = "CheckButton",
 			text = L["Shorten records"],
 			tooltip = L["Use shorter format for record numbers."],
@@ -385,17 +421,23 @@ do
 			width = 160,
 			func = "UpdateTooltips",
 			menuList = {
+				"highest",
 				"alpha",
 				"normal",
 				"crit",
 			},
 			properties = {
 				text = {
+					highest = L["Highest hit"],
 					alpha = L["Spell name"],
 					normal = L["Normal record"],
 					crit = L["Crit record"],
 				},
 			},
+		},
+		{
+			type = "Section",
+			text = L["New records"],
 		},
 		{
 			type = "CheckButton",
@@ -441,7 +483,7 @@ local defaults = {
 		shortFormat = false,
 		spellTooltips = true,
 		detailedTooltip = false,
-		tooltipSort = "normal",
+		tooltipSort = "highest",
 		oldRecord = false,
 		chatOutput = false,
 		screenshot = false,
@@ -449,6 +491,10 @@ local defaults = {
 		-- WoW: Forever port: UNIT_COMBAT tracking
 		unitCombatSoloOnly = true,
 		unitCombatIgnoreReactive = true,
+		-- best guess per-spell records (UnitCombat.lua)
+		unitCombatPerSpell = false,
+		unitCombatKeepSchool = true,
+		unitCombatSpellWindow = 2.5,
 	},
 	global = {
 		spellMappings = {},
@@ -463,6 +509,8 @@ local defaults = {
 		spellIconOverrides = {},
 		-- WoW: Forever port: register for the combat log even when the client appears to block it
 		forceCombatLog = false,
+		-- WoW: Forever port: what per-spell guessing has learned, per spell ID
+		unitCombatSpells = {},
 	},
 }
 
@@ -495,6 +543,7 @@ function Critline:OnInitialize()
 		errors = {},
 	}
 	self:DiagStep("OnInitialize")
+	self:DiagStep("Files loaded: "..table.concat(self.loadedFiles or {}, ", "))
 
 	local AceDB = LibStub("AceDB-3.0")
 	local db = AceDB:New("CritlineDB", defaults, nil)
@@ -522,16 +571,21 @@ function Critline:OnInitialize()
 
 	-- dual spec support
 	-- WoW: Forever port: another addon's newer LibDualSpec may take over; don't let it stop record tracking
-	local LibDualSpec = LibStub("LibDualSpec-1.0")
-	local ok, err = pcall(function()
-		LibDualSpec:EnhanceDatabase(self.db, addonName)
-		LibDualSpec:EnhanceDatabase(self.percharDB, addonName)
-	end)
-	if not ok then
-		self.dualSpecError = err
-		self:Message("Dual spec profiles are unavailable: "..tostring(err))
+	-- Classic Era: the library doesn't load outside Season of Discovery, so it may be missing
+	local LibDualSpec = LibStub("LibDualSpec-1.0", true)
+	if LibDualSpec then
+		local ok, err = pcall(function()
+			LibDualSpec:EnhanceDatabase(self.db, addonName)
+			LibDualSpec:EnhanceDatabase(self.percharDB, addonName)
+		end)
+		if not ok then
+			self.dualSpecError = err
+			self:Message("Dual spec profiles are unavailable: "..tostring(err))
+		end
+		self:DiagStep("LibDualSpec "..(ok and "ok" or "error: "..tostring(err)))
+	else
+		self:DiagStep("LibDualSpec not available")
 	end
-	self:DiagStep("LibDualSpec "..(ok and "ok" or "error: "..tostring(err)))
 
 	db.RegisterCallback(self, "OnProfileChanged", "LoadSettings")
 	db.RegisterCallback(self, "OnProfileCopied", "LoadSettings")
@@ -542,8 +596,17 @@ function Critline:OnInitialize()
 	percharDB.RegisterCallback(self, "OnProfileReset", "LoadPerCharSettings")
 
 	if self:IsCombatLogAvailable() then
-		self.trackingMode = "combat log"
-		self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+		-- some clients have the combat log API but refuse the event; fall back to UNIT_COMBAT then
+		local ok, err = pcall(self.RegisterEvent, self, "COMBAT_LOG_EVENT_UNFILTERED")
+		if ok then
+			self.trackingMode = "combat log"
+		else
+			self:DiagStep("Combat log registration failed: "..tostring(err))
+			tinsert(CritlineDiag.errors, tostring(err))
+		end
+	end
+	if self.trackingMode then
+		-- combat log registered
 	elseif self.unitCombat then
 		self.trackingMode = "UNIT_COMBAT"
 		self.unitCombat:Enable()
@@ -813,21 +876,39 @@ end
 
 local levelCache = {}
 
-local levelStrings = {
-	TOOLTIP_UNIT_LEVEL:format("(%d+)"),
-	TOOLTIP_UNIT_LEVEL_RACE:format("(%d+)", ".+"),
-	TOOLTIP_UNIT_LEVEL_RACE_TYPE:format("(%d+)", ".+", ".+"),
-	TOOLTIP_UNIT_LEVEL_TYPE:format("(%d+)", ".+"),
-}
+-- not every client has all of these tooltip strings (Classic Era lacks some)
+local levelStrings = {}
+for _, pattern in ipairs({
+	{TOOLTIP_UNIT_LEVEL, "(%d+)"},
+	{TOOLTIP_UNIT_LEVEL_RACE, "(%d+)", ".+"},
+	{TOOLTIP_UNIT_LEVEL_RACE_TYPE, "(%d+)", ".+", ".+"},
+	{TOOLTIP_UNIT_LEVEL_TYPE, "(%d+)", ".+"},
+	{TOOLTIP_UNIT_LEVEL_CLASS, "(%d+)", ".+"},
+}) do
+	if type(pattern[1]) == "string" then
+		levelStrings[#levelStrings + 1] = pattern[1]:format(unpack(pattern, 2))
+	end
+end
 
 function Critline:GetLevelFromGUID(destGUID)
 	if levelCache[destGUID] then
 		return levelCache[destGUID]
 	end
 
-	local tooltipData = C_TooltipInfo.GetHyperlink("unit:"..destGUID)
-
 	local level = bossLevel
+
+	-- the target's level is known without a tooltip
+	if UnitGUID("target") == destGUID then
+		local targetLevel = UnitLevel("target")
+		if type(targetLevel) == "number" and targetLevel > 0 then
+			return targetLevel
+		end
+	end
+
+	local tooltipData = C_TooltipInfo and C_TooltipInfo.GetHyperlink("unit:"..destGUID)
+	if not (tooltipData and tooltipData.lines) then
+		return level
+	end
 
 	for i, line in ipairs(tooltipData.lines) do
 		local text = line.leftText
@@ -859,12 +940,21 @@ function Critline:ToggleDebug()
 end
 
 -- WoW: Forever shares Midnight's addon restrictions: the combat log is closed to addons, and registering
--- COMBAT_LOG_EVENT_UNFILTERED raises ADDON_ACTION_FORBIDDEN. The secret value API is used as the tell.
+-- COMBAT_LOG_EVENT_UNFILTERED raises ADDON_ACTION_FORBIDDEN. The secret value API is the tell, but Classic Era
+-- (1.15.x) has that API too with an open combat log, so it only counts on Forever (16xxx) and Midnight (12xxxx+).
 function Critline:IsCombatLogAvailable()
 	if self.db and self.db.global.forceCombatLog then
 		return true
 	end
-	return CombatLogGetCurrentEventInfo ~= nil and issecretvalue == nil
+	if CombatLogGetCurrentEventInfo == nil then
+		return false
+	end
+	if issecretvalue == nil then
+		return true
+	end
+	local toc = select(4, GetBuildInfo()) or 0
+	local restricted = toc >= 120000 or (toc >= 16000 and toc < 20000)
+	return not restricted
 end
 
 -- WoW: Forever port: one command that shows why records may not be registered
@@ -924,9 +1014,9 @@ local FIRST_NUMBER_CAP = FIRST_NUMBER_CAP:lower()
 function Critline:ShortenNumber(amount)
 	if tonumber(amount) and self.db.profile.shortFormat then
 		if amount >= 1e7 then
-			amount = (floor(amount / 1e5) / 10)..SECOND_NUMBER_CAP
+			amount = (floor(amount / 1e5) / 10)..(SECOND_NUMBER_CAP or "M")
 		elseif amount >= 1e6 then
-			amount = (floor(amount / 1e4) / 100)..SECOND_NUMBER_CAP
+			amount = (floor(amount / 1e4) / 100)..(SECOND_NUMBER_CAP or "M")
 		elseif amount >= 1e4 then
 			amount = (floor(amount / 100) / 10)..FIRST_NUMBER_CAP
 		end
@@ -1307,7 +1397,7 @@ local function addLine(header, nonTick, tick)
 	Critline:AddTooltipLine(tick)
 end
 
-TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Spell, function(self)
+local function onSpellTooltip(self)
 	if self ~= GameTooltip then
 		return
 	end
@@ -1318,7 +1408,14 @@ TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Spell, function(sel
 
 	self.Critline = true
 
-	local spellName, spellID = self:GetSpell()
+	-- older clients return name, rank, ID
+	local spellName, spellID, oldSpellID = self:GetSpell()
+	if type(spellID) ~= "number" then
+		spellID = oldSpellID
+	end
+	if type(spellID) ~= "number" then
+		return
+	end
 
 	if debugging then
 		self:AddLine(format("Spell ID: |cffffffff%d|r", spellID))
@@ -1361,7 +1458,14 @@ TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Spell, function(sel
 		end
 		addLine((dmg or heal) and L["Pet"], pet1, pet2)
 	end
-end)
+end
+
+-- TooltipDataProcessor is missing on older clients (Classic Era); they have OnTooltipSetSpell instead
+if TooltipDataProcessor and Enum.TooltipDataType then
+	TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Spell, onSpellTooltip)
+elseif GameTooltip:HasScript("OnTooltipSetSpell") then
+	GameTooltip:HookScript("OnTooltipSetSpell", onSpellTooltip)
+end
 
 GameTooltip:HookScript("OnTooltipCleared", function(self)
 	self.Critline = nil
@@ -1377,3 +1481,9 @@ hooksecurefunc(GameTooltip, "SetPetAction", function(self, action)
 		self:Show()
 	end
 end)
+-- diagnostics: this file loaded to the end
+do
+	local ns = select(2, ...)
+	ns.loadedFiles = ns.loadedFiles or {}
+	ns.loadedFiles[#ns.loadedFiles + 1] = "Core"
+end

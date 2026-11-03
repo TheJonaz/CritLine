@@ -7,7 +7,13 @@ local band = bit.band
 local CombatLogGetCurrentEventInfo = CombatLogGetCurrentEventInfo
 local CombatLog_Object_IsA = CombatLog_Object_IsA
 local IsSpellKnown = IsSpellKnown
-local GetAuraDataByIndex = C_UnitAuras.GetAuraDataByIndex
+-- older clients have UnitAura instead of C_UnitAuras
+local GetAuraDataByIndex = C_UnitAuras and C_UnitAuras.GetAuraDataByIndex or function(unit, index, filter)
+	local name, _, _, _, _, _, sourceUnit, _, _, spellId = UnitAura(unit, index, filter)
+	if name then
+		return {name = name, spellId = spellId, sourceUnit = sourceUnit}
+	end
+end
 local UnitName = UnitName
 local UnitGUID = UnitGUID
 local IsInInstance = IsInInstance

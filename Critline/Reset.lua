@@ -160,3 +160,9 @@ end
 
 addon.RegisterCallback(module, "PerCharSettingsLoaded", "ClearHistory")
 module:RegisterEvent("PLAYER_REGEN_DISABLED", "ClearHistory")
+-- diagnostics: this file loaded to the end
+do
+	local ns = select(2, ...)
+	ns.loadedFiles = ns.loadedFiles or {}
+	ns.loadedFiles[#ns.loadedFiles + 1] = "Reset"
+end

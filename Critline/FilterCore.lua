@@ -8,7 +8,13 @@ local IsPlayerSpell = IsPlayerSpell
 local IsSpellKnown = IsSpellKnown
 local GetSpellLink = C_Spell.GetSpellLink
 local UnitAffectingCombat = UnitAffectingCombat
-local GetAuraDataByIndex = C_UnitAuras.GetAuraDataByIndex
+-- older clients have UnitAura instead of C_UnitAuras
+local GetAuraDataByIndex = C_UnitAuras and C_UnitAuras.GetAuraDataByIndex or function(unit, index, filter)
+	local name, _, _, _, _, _, sourceUnit, _, _, spellId = UnitAura(unit, index, filter)
+	if name then
+		return {name = name, spellId = spellId, sourceUnit = sourceUnit}
+	end
+end
 
 local COMBATLOG_FILTER_ME = COMBATLOG_FILTER_ME
 
@@ -804,4 +810,10 @@ function filters:GetUnit(unitFlags, unitGUID)
 	elseif addon:IsMyPet(unitFlags, unitGUID) then
 		return "pet"
 	end
+end
+-- diagnostics: this file loaded to the end
+do
+	local ns = select(2, ...)
+	ns.loadedFiles = ns.loadedFiles or {}
+	ns.loadedFiles[#ns.loadedFiles + 1] = "FilterCore"
 end

@@ -83,3 +83,9 @@ function feeds:OnInitialize()
 	updateRecords()
 	onTreeStateChanged()
 end
+-- diagnostics: this file loaded to the end
+do
+	local ns = select(2, ...)
+	ns.loadedFiles = ns.loadedFiles or {}
+	ns.loadedFiles[#ns.loadedFiles + 1] = "Broker"
+end

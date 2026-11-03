@@ -17,3 +17,9 @@ function profileUI:OnInitialize()
 	Critline:CreateAceDBControls(Critline.db, profiles):SetPoint("CENTER")
 	Critline:CreateAceDBControls(Critline.percharDB, spellProfiles):SetPoint("CENTER")
 end
+-- diagnostics: this file loaded to the end
+do
+	local ns = select(2, ...)
+	ns.loadedFiles = ns.loadedFiles or {}
+	ns.loadedFiles[#ns.loadedFiles + 1] = "Profiles"
+end

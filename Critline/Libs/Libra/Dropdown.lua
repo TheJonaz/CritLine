@@ -310,6 +310,11 @@ end
 Dropdown.scrollButtons = Dropdown.scrollButtons or setmetatable({}, {
 	__index = function(self, level)
 		local listFrame = _G["DropDownList"..level]
+		if not listFrame then
+			-- no classic list frame for this level (newer clients); hand back inert buttons
+			local noop = {Show = function() end, Hide = function() end, SetShown = function() end}
+			return {up = noop, down = noop}
+		end
 		createScrollButtons(listFrame)
 		self[level] = {
 			up = listFrame.scrollUp,

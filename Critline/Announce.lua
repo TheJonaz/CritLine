@@ -84,3 +84,9 @@ addon:CreatePopup("CRITLINE_ANNOUNCE_CHANNEL", {
 	end,
 	OnShow = onShow,
 }, true)
+-- diagnostics: this file loaded to the end
+do
+	local ns = select(2, ...)
+	ns.loadedFiles = ns.loadedFiles or {}
+	ns.loadedFiles[#ns.loadedFiles + 1] = "Announce"
+end

@@ -34,11 +34,148 @@ end
 local function onEnter(self)
 	GameTooltip:SetOwner(self, "ANCHOR_TOPLEFT")
 	Critline:ShowTooltip(self.tree)
+	GameTooltip:AddLine(" ")
+	GameTooltip:AddLine(L["Right-click to share your top records in chat"], GRAY_FONT_COLOR.r, GRAY_FONT_COLOR.g, GRAY_FONT_COLOR.b)
 	if not Display.profile.locked then
-		GameTooltip:AddLine(" ")
 		GameTooltip:AddLine(L["Drag to move"], GRAY_FONT_COLOR.r, GRAY_FONT_COLOR.g, GRAY_FONT_COLOR.b)
 	end
 	GameTooltip:Show()
+end
+
+-- sharing top records in chat
+local MAX_SHARED = 5
+local MAX_MESSAGE = 255
+
+-- "Critline top damage records: Fireball 1402 (crit), Fire Blast 812, Auto Attack 95"
+local function buildShareMessage(tree)
+	local spells = {}
+	for _, v in ipairs(Critline:GetSpellArray(tree, false)) do
+		local info = Critline:GetSpellInfo(tree, v.id, v.periodic)
+		if not (Critline.filters and info and info.filtered) and (v.normal or v.crit) then
+			spells[#spells + 1] = v
+		end
+	end
+	sort(spells, Critline.recordSorters.highest)
+
+	local message = format(L["Critline top %s records:"], Critline.trees[tree].label)
+	local count = 0
+	for _, v in ipairs(spells) do
+		local normal = v.normal and v.normal.amount or 0
+		local crit = v.crit and v.crit.amount or 0
+		local item = format("%s %s", Critline:GetFullSpellName(v.name, v.periodic), Critline:ShortenNumber(max(normal, crit)))
+		if crit > normal then
+			item = format("%s (%s)", item, L["Crit"]:lower())
+		end
+		local text = message..(count == 0 and " " or ", ")..item
+		if #text > MAX_MESSAGE then
+			break
+		end
+		message = text
+		count = count + 1
+		if count == MAX_SHARED then
+			break
+		end
+	end
+	if count == 0 then
+		return
+	end
+	return message
+end
+
+local function share(tree, channel, target)
+	local message = buildShareMessage(tree)
+	if not message then
+		Critline:Message(L["No records to share yet."])
+		return
+	end
+	local SendChatMessage = C_ChatInfo and C_ChatInfo.SendChatMessage or SendChatMessage
+	SendChatMessage(message, channel, nil, target)
+end
+
+local function getEditBox(dialog)
+	return dialog.editBox or dialog.EditBox or (dialog.GetEditBox and dialog:GetEditBox())
+end
+
+Critline:CreatePopup("CRITLINE_SHARE_WHISPER", {
+	text = L["Enter whisper target"],
+	OnAccept = function(self, tree)
+		local editBox = getEditBox(self)
+		local target = editBox and editBox:GetText():trim()
+		if target and target ~= "" then
+			share(tree, "WHISPER", target)
+		end
+	end,
+}, true)
+
+local function onShareClick(self, tree, channel)
+	if channel == "WHISPER" then
+		local dialog = StaticPopup_Show("CRITLINE_SHARE_WHISPER", nil, nil, tree)
+		-- suggest your target if it's a player
+		local editBox = dialog and getEditBox(dialog)
+		if editBox and UnitIsPlayer("target") and not UnitIsUnit("target", "player") then
+			editBox:SetText(GetUnitName("target", true) or "")
+			editBox:HighlightText()
+		end
+	else
+		share(tree, channel)
+	end
+end
+
+local shareChannels = {
+	{"SAY"},
+	{"PARTY", function() return not IsInGroup() end},
+	{"RAID", function() return not IsInRaid() end},
+	{"GUILD", function() return not IsInGuild() end},
+	{"WHISPER"},
+}
+
+local shareMenu = Critline:CreateDropdown("Menu")
+shareMenu.initialize = function(self, level)
+	local tree = UIDROPDOWNMENU_MENU_VALUE
+	self:AddButton({
+		text = format(L["Share top %s records"], Critline.trees[tree].label),
+		isTitle = true,
+		notCheckable = true,
+	}, level)
+	for _, v in ipairs(shareChannels) do
+		local channel, isDisabled = v[1], v[2]
+		self:AddButton({
+			text = _G[channel] or channel,
+			func = onShareClick,
+			arg1 = tree,
+			arg2 = channel,
+			disabled = isDisabled and isDisabled(),
+			notCheckable = true,
+		}, level)
+	end
+end
+
+-- Clients with the new Menu API (WoW: Forever, Midnight): the old
+-- UIDropDownMenu list frames the Libra dropdown relies on aren't there.
+local function openShareMenu(owner, tree)
+	MenuUtil.CreateContextMenu(owner, function(_, root)
+		root:CreateTitle(format(L["Share top %s records"], Critline.trees[tree].label))
+		for _, v in ipairs(shareChannels) do
+			local channel, isDisabled = v[1], v[2]
+			local button = root:CreateButton(_G[channel] or channel, function()
+				onShareClick(nil, tree, channel)
+			end)
+			if isDisabled and isDisabled() then
+				button:SetEnabled(false)
+			end
+		end
+	end)
+end
+
+local function onMouseUp(self, button)
+	if button == "RightButton" then
+		GameTooltip:Hide()
+		if MenuUtil and MenuUtil.CreateContextMenu then
+			openShareMenu(self, self.tree)
+		else
+			shareMenu:Toggle(self.tree, self, 0, 0)
+		end
+	end
 end
 
 local backdrop = {
@@ -60,6 +197,7 @@ for k, tree in pairs(Critline.trees) do
 	frame:SetScript("OnDragStop", onDragStop)
 	frame:SetScript("OnEnter", onEnter)
 	frame:SetScript("OnLeave", GameTooltip_Hide)
+	frame:SetScript("OnMouseUp", onMouseUp)
 	frame.tree = k
 	
 	local text = frame:CreateFontString(nil, nil, "GameFontHighlightSmall")
@@ -294,4 +432,10 @@ function Display:UpdateLayout()
 	
 	-- hide the entire frame if it turns out none of the individual frames are shown
 	self:SetShown(#shown > 0 and self.profile.show)
+end
+-- diagnostics: this file loaded to the end
+do
+	local ns = select(2, ...)
+	ns.loadedFiles = ns.loadedFiles or {}
+	ns.loadedFiles[#ns.loadedFiles + 1] = "Display"
 end

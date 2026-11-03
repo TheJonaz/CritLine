@@ -177,3 +177,9 @@ end
 function spellList:SetSpellColorMod(func)
 	textColorMod = func
 end
+-- diagnostics: this file loaded to the end
+do
+	local ns = select(2, ...)
+	ns.loadedFiles = ns.loadedFiles or {}
+	ns.loadedFiles[#ns.loadedFiles + 1] = "SpellList"
+end

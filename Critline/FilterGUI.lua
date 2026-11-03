@@ -70,6 +70,8 @@ do
 		},
 	}
 
+	-- the filter list takes the right half of the page
+	filters.config.columnWidth = 220
 	filters.config:CreateOptions(options)
 end
 
@@ -89,7 +91,7 @@ local FILTERBUTTONHEIGHT = 18
 local BUTTON_OFFSET_TOP = 2
 
 local filterList = addon:CreateTabInterface(filters.config)
-filterList:SetPoint("TOPLEFT", filters.config.desc, "BOTTOM", -32, -20)
+filterList:SetPoint("TOPLEFT", filters.config, "TOP", -39, -92)
 filterList:SetPoint("RIGHT", -48, 0)
 filterList:SetHeight(NUMFILTERBUTTONS * FILTERBUTTONHEIGHT + BUTTON_OFFSET_TOP)
 
@@ -354,4 +356,10 @@ do	-- filter tabs
 	end
 
 	filterList:SelectTab(1)
+end
+-- diagnostics: this file loaded to the end
+do
+	local ns = select(2, ...)
+	ns.loadedFiles = ns.loadedFiles or {}
+	ns.loadedFiles[#ns.loadedFiles + 1] = "FilterGUI"
 end

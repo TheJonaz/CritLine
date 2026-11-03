@@ -77,6 +77,13 @@ heal from that event.
 - Without the combat log, Critline cannot tell **which spell** hit. `C_DamageMeter` only gives
   totals per spell, and they are secret in combat. `UNIT_COMBAT` gives amount and crit, but not the
   spell or the attacker. Records are therefore per school.
+- **Per-spell records** (optional, off by default) are a guess. `UNIT_SPELLCAST_SUCCEEDED` and
+  `UNIT_SPELLCAST_CHANNEL_START` give the spell you cast; a hit on your target is credited to a recent cast
+  with a matching learned school and the closest learned cast-to-hit delay. Physical hits while auto attack is
+  on only match casts from the last 0.4 seconds; otherwise they count as Auto Attack (6603). A spell only gets
+  its own records after 3 casts with at least half of them hitting. Learned data is kept per account in
+  `CritlineDB.global.unitCombatSpells`. DoT ticks, procs, pet hits and overlapping projectiles can be
+  misattributed. Not yet confirmed in game whether the cast spell ID is ever secret.
 - While you are attacking, your pet's hits on your target count as yours (in the damage tree).
   They are only recorded in the pet tree while your pet attacks your target and you don't. DoT
   ticks and hits from others' AoE can be counted while you are attacking.

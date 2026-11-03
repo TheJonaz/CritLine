@@ -1,5 +1,16 @@
 # Critline
 
+## Unreleased (unofficial WoW: Forever port)
+
+- New, optional **per-spell records** (Options → Critline → Per-spell records, off by default). The combat log is still closed, so Critline guesses which spell hit: a hit is matched to the spell you cast just before it, by school and by the spell's usual time from cast to hit. Physical swings while auto attack is on, with no matching spell, are recorded as Auto Attack. A spell only gets its own records after a few casts, once most of its casts were followed by a hit, so spells that deal no damage don't take over your swings. Unmatched hits are still recorded per school.
+- Options: **Keep school records too** (on by default) and **Match window** (0.5 to 5 seconds, 2.5 by default).
+- Hover over the display to see your spells sorted by highest hit (new default for "Sort tooltips by"). Right-click the display to share your top 5 records in Say, Party, Raid, Guild or a Whisper (your target is suggested).
+- New look for the options pages, matching Best Value: a header with logo, title and subtitle, gold section headings, and a short description under every checkbox.
+- New `/cl spells` lists what has been learned about each spell; `/cl forgetspells` clears it. `/cl status` and `/cl debug` show the per-spell guess.
+- Fixed: in Classic Era, spells were recorded as their school (Frostbolt as "Frost", Heroic Strike as "Physical"). Classic Era has the same secret value API as WoW: Forever, so Critline thought the combat log was closed. It now reads the combat log in Classic Era and records each spell by name.
+- Fixed: the minimap button could sit away from the minimap. It is now placed again after login and whenever the minimap changes size.
+- Fixed: right-clicking the minimap button (or typing /cl) gave "Interface action failed because of an AddOn" in Classic Era. Critline renamed its options categories, which tainted the game's settings panel.
+
 ## v4.7.1-forever10 (unofficial WoW: Forever port)
 
 - Fixed a Lua error in combat from Critline: AuraMonitor (`GetAuraDataByIndex(): Auras cannot be accessed when secret`). Auras are hidden from addons in combat, and even asking for them errors, so AuraMonitor now waits until combat ends before it scans. Critline itself no longer scans auras when the combat log is unavailable, because aura filters need the combat log.

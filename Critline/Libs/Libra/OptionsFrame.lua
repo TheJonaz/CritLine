@@ -1,5 +1,5 @@
 local Libra = LibStub("Libra")
-local Type, Version = "OptionsFrame", 7
+local Type, Version = "OptionsFrame", 8
 if Libra:GetModuleVersion(Type) >= Version then return end
 
 Libra.modules[Type] = Libra.modules[Type] or {}
@@ -17,45 +17,74 @@ local parentMT = {__index = setmetatable(Options.ParentPrototype, {__index = Opt
 local Prototype = Options.Prototype
 local ParentPrototype = Options.ParentPrototype
 
--- 12.0 settings API (Midnight, WoW: Forever): categories must keep their own ID, or OpenToCategory does nothing
-local keepCategoryID = C_SettingsUtil and C_SettingsUtil.OpenSettingsPanel
+-- categories keep the ID the settings API gave them: OpenToCategory needs it on 12.0 (Midnight, WoW: Forever),
+-- and writing to a Blizzard category taints the settings panel, so opening it fails in Classic Era
+
+-- height of the page header; controls start below it
+local HEADER_HEIGHT = 72
 
 local function createFrame(name, parent)
 	local frame = CreateFrame("Frame")
 
 	if parent then
 		local subCategory, layout = Settings.RegisterCanvasLayoutSubcategory(parent, frame, name)
-		if not keepCategoryID then
-			subCategory.ID = name
-		end
 		frame.category = subCategory
 	else
 		local category, layout = Settings.RegisterCanvasLayoutCategory(frame, name)
-		if not keepCategoryID then
-			category.ID = name
-		end
 		Settings.RegisterAddOnCategory(category)
 		frame.category = category
 	end
 
-	local title = frame:CreateFontString(nil, nil, "GameFontNormalLarge")
-	title:SetPoint("TOPLEFT", 16, -16)
+	-- header in the style of Best Value: a faint gold band with logo, title and a muted subtitle
+	local band = frame:CreateTexture(nil, "BACKGROUND", nil, 1)
+	band:SetPoint("TOPLEFT", 4, -4)
+	band:SetPoint("TOPRIGHT", -4, -4)
+	band:SetHeight(HEADER_HEIGHT - 4)
+	band:SetColorTexture(1, 0.82, 0, 0.06)
+	
+	local line = frame:CreateTexture(nil, "ARTWORK")
+	line:SetPoint("TOPLEFT", band, "BOTTOMLEFT")
+	line:SetPoint("TOPRIGHT", band, "BOTTOMRIGHT")
+	line:SetHeight(1)
+	line:SetColorTexture(1, 0.82, 0, 0.45)
+	
+	local logo = frame:CreateTexture(nil, "ARTWORK")
+	logo:SetSize(48, 48)
+	logo:SetPoint("TOPLEFT", 16, -14)
+	logo:Hide()
+	frame.logo = logo
+	
+	local title = frame:CreateFontString(nil, nil, "GameFontNormalHuge")
+	title:SetPoint("TOPLEFT", 16, -18)
 	title:SetPoint("RIGHT", -16, 0)
 	title:SetJustifyH("LEFT")
 	title:SetJustifyV("TOP")
 	title:SetText(name)
 	frame.title = title
 	
-	local desc = frame:CreateFontString(nil, nil, "GameFontHighlightSmall")
-	desc:SetHeight(32)
-	desc:SetPoint("TOPLEFT", frame.title, "BOTTOMLEFT", 0, -8)
-	desc:SetPoint("RIGHT", -31, 0)
+	local desc = frame:CreateFontString(nil, nil, "GameFontDisableSmall")
+	desc:SetHeight(28)
+	desc:SetPoint("TOPLEFT", frame.title, "BOTTOMLEFT", 0, -4)
+	desc:SetPoint("RIGHT", -16, 0)
 	desc:SetJustifyH("LEFT")
 	desc:SetJustifyV("TOP")
 	desc:SetNonSpaceWrap(true)
 	frame.desc = desc
 	
 	return frame
+end
+
+local function setLogo(frame, texture)
+	frame.logoTexture = texture
+	frame.logo:SetTexture(texture)
+	frame.logo:SetShown(texture ~= nil)
+	frame.title:ClearAllPoints()
+	if texture then
+		frame.title:SetPoint("TOPLEFT", frame.logo, "TOPRIGHT", 12, -4)
+	else
+		frame.title:SetPoint("TOPLEFT", 16, -18)
+	end
+	frame.title:SetPoint("RIGHT", -16, 0)
 end
 
 local function constructor(self, name)
@@ -77,10 +106,18 @@ function ParentPrototype:AddSubCategory(name, inherit)
 		frame.allcontrols = {}
 	end
 	frame.inherit = inherit
+	if self.logoTexture then
+		setLogo(frame, self.logoTexture)
+	end
 	frame.controls = {}
 	self.subCategories = self.subCategories or {}
 	tinsert(self.subCategories, frame)
 	return frame
+end
+
+-- show a logo in the header of this page and of sub-pages added after this
+function Prototype:SetLogo(texture)
+	setLogo(self, texture)
 end
 
 function Prototype:SetDescription(text)
@@ -173,6 +210,10 @@ end
 local controls = Options.controls
 local controlData = Options.controlData
 
+-- text width of a control's description in a two column page, and in a single column page
+local COLUMN_WIDTH = 270
+local FULL_WIDTH = 520
+
 do	-- CheckButton
 	controlData.CheckButton = {
 		x = -2,
@@ -196,10 +237,54 @@ do	-- CheckButton
 		checkButton.SetValue = checkButton.SetChecked
 		
 		checkButton.label = checkButton:CreateFontString()
-		checkButton.label:SetPoint("LEFT", checkButton, "RIGHT", 0, 1)
+		checkButton.label:SetPoint("TOPLEFT", checkButton, "TOPRIGHT", 2, -6)
 		checkButton:SetFontString(checkButton.label)
 		
+		-- muted description under the label (filled from the option's tooltip)
+		local desc = checkButton:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+		desc:SetPoint("TOPLEFT", checkButton.label, "BOTTOMLEFT", 0, -3)
+		desc:SetJustifyH("LEFT")
+		desc:SetJustifyV("TOP")
+		checkButton.desc = desc
+		
+		local highlight = checkButton:CreateTexture(nil, "BACKGROUND")
+		highlight:SetPoint("TOPLEFT", -4, 2)
+		highlight:SetPoint("BOTTOMRIGHT", desc, "BOTTOMRIGHT", 4, -4)
+		highlight:SetColorTexture(1, 1, 1, 0.05)
+		highlight:Hide()
+		checkButton:HookScript("OnEnter", function() highlight:Show() end)
+		checkButton:HookScript("OnLeave", function() highlight:Hide() end)
+		
+		local setEnabled = checkButton.SetEnabled
+		function checkButton:SetEnabled(enabled)
+			setEnabled(self, enabled)
+			self.desc:SetAlpha(enabled and 1 or 0.5)
+		end
+		
 		return checkButton
+	end
+end
+
+do	-- Section: an uppercase gold heading with a thin line, as in Best Value
+	controlData.Section = {
+		x = 0,
+		y = -22,
+		bottomOffset = 10,
+	}
+	
+	controls.Section = function(parent)
+		local section = CreateFrame("Frame", nil, parent)
+		section:SetSize(COLUMN_WIDTH, 14)
+		section.label = section:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+		section.label:SetPoint("LEFT")
+		local line = section:CreateTexture(nil, "ARTWORK")
+		line:SetPoint("LEFT", section.label, "RIGHT", 8, 0)
+		line:SetPoint("RIGHT")
+		line:SetHeight(1)
+		line:SetColorTexture(1, 0.82, 0, 0.2)
+		section.SetValue = function() end
+		section.SetEnabled = function() end
+		return section
 	end
 end
 
@@ -444,24 +529,50 @@ function Libra:AddControlType(type, constructor, controlData)
 end
 
 function Prototype:CreateOptions(options)
+	-- a page can set .columnWidth when something else shares its space
+	local width = self.columnWidth or FULL_WIDTH
+	for i, option in ipairs(options) do
+		if option.newColumn then
+			width = COLUMN_WIDTH
+		end
+	end
+	local firstIndex = #self.controls + 1
 	for i, option in ipairs(options) do
 		local control = controls[option.type](self, option)
 		local data = controlData[option.type]
 		if i == 1 then
-			control:SetPoint("TOPLEFT", self.desc, "BOTTOMLEFT", data.x, data.y + 8)
+			control:SetPoint("TOPLEFT", self, "TOPLEFT", 16 + data.x, -HEADER_HEIGHT + data.y + 8)
 		elseif option.newColumn then
-			control:SetPoint("TOPLEFT", self.desc, "BOTTOM", data.x - 2, data.y + 8)
+			control:SetPoint("TOPLEFT", self, "TOP", data.x - 2, -HEADER_HEIGHT + data.y + 8)
 		else
 			local previousOption = options[i - 1]
 			local previousData = controlData[previousOption.type]
-			control:SetPoint("TOPLEFT", self.controls[i - 1], "BOTTOMLEFT", data.x - previousData.x, data.y + previousData.bottomOffset - (option.padding or 0))
+			local previous = self.controls[firstIndex + i - 2]
+			control:SetPoint("TOPLEFT", previous, "BOTTOMLEFT", data.x - previousData.x, data.y + previousData.bottomOffset - (previous.extraHeight or 0) - (option.padding or 0))
 		end
 		if option.width then
 			control:SetWidth(option.width)
 		end
 		control.parent = self
-		control.label:SetText(option.text)
+		if option.type == "Section" then
+			control:SetWidth(width + 30)
+			control.label:SetText(option.text:upper())
+		else
+			control.label:SetText(option.text)
+		end
 		control.tooltipText = option.tooltip
+		-- check buttons show their tooltip as a description under the label instead
+		if control.desc and option.tooltip then
+			control.desc:SetWidth(width)
+			control.desc:SetText(option.tooltip)
+			local height = control.desc:GetStringHeight()
+			if not height or height == 0 then
+				height = ceil(#option.tooltip * 5.5 / width) * 11
+			end
+			control.extraHeight = max(0, height - 2)
+			control:SetHitRectInsets(0, -(width + 30), 0, -control.extraHeight)
+			control.tooltipText = nil
+		end
 		control.key = option.key
 		control.keyTable = option.keyTable
 		control.set = option.set
