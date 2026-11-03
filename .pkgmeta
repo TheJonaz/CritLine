@@ -1,0 +1,17 @@
+package-as: Critline
+
+# the repo holds both addon folders; ship them side by side in the zip
+move-folders:
+  Critline/Critline: Critline
+  Critline/Critline_AuraMonitor: Critline_AuraMonitor
+
+manual-changelog:
+  filename: Critline/CHANGELOG.md
+  markup-type: markdown
+
+ignore:
+  - curseforge
+  - media
+  - dist
+  - build.sh
+  - "*.zip"

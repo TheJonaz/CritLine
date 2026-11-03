@@ -1,0 +1,11 @@
+## Interface: 120105
+## Title: CritLine Midnight: AuraMonitor
+## IconTexture: Interface\AddOns\Critline\Critline
+## Version: @project-version@
+## Notes: Aura monitoring module for Critline.
+## Author: Lombra
+## X-Port: Midnight port by The_Yonaz, distributed with written permission from Lombra. See PORTING.md.
+
+## RequiredDeps: Critline
+
+Core.lua
