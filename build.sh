@@ -9,7 +9,8 @@ WOW="$HOME/Games/battlenet/drive_c/Program Files (x86)/World of Warcraft"
 GAME_FOLDERS=(_classic_era_ _forever_ _retail_)
 ADDONS=(Critline Critline_AuraMonitor)
 
-VERSION="$(git -C "$ROOT" describe --tags --always 2>/dev/null || echo dev)"
+# VERSION=v4.7.2 ./build.sh builds a release zip before the tag exists (e.g. for a manual first upload)
+VERSION="${VERSION:-$(git -C "$ROOT" describe --tags --always 2>/dev/null || echo dev)}"
 stage="$(mktemp -d)"
 trap 'rm -rf "$stage"' EXIT
 
