@@ -18,6 +18,8 @@ for addon in "${ADDONS[@]}"; do
 	cp -r "$ROOT/$addon" "$stage/"
 	sed -i "s/@project-version@/$VERSION/" "$stage/$addon"/*.toc
 done
+# the changelog lives at the repo root (the packager reads it from the package folder)
+cp "$ROOT/CHANGELOG.md" "$stage/Critline/"
 
 mkdir -p "$DIST"
 zip_path="$DIST/Critline-$VERSION.zip"

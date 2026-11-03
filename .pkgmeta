@@ -6,7 +6,7 @@ move-folders:
   Critline/Critline_AuraMonitor: Critline_AuraMonitor
 
 manual-changelog:
-  filename: Critline/CHANGELOG.md
+  filename: CHANGELOG.md
   markup-type: markdown
 
 ignore:
