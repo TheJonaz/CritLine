@@ -5,6 +5,7 @@
 ## Notes: Saves your normal and critical records and flashes a message if you break the record.
 ## Author: Lombra
 ## X-Port: WoW: Forever port by The_Yonaz, distributed with written permission from Lombra. See PORTING.md.
+## X-Curse-Project-ID: 1750043
 
 ## X-Original: https://github.com/Lombra/Critline
 

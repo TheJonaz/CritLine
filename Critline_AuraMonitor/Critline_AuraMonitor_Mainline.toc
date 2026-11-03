@@ -5,6 +5,7 @@
 ## Notes: Aura monitoring module for Critline.
 ## Author: Lombra
 ## X-Port: Midnight port by The_Yonaz, distributed with written permission from Lombra. See PORTING.md.
+## X-Curse-Project-ID: 1750043
 
 ## RequiredDeps: Critline
 
